@@ -192,10 +192,11 @@
 </svg></a></p>
 
 <p align="center">
-<a href="https://github.com/Unix-User/PhPMineServerManager/actions"><img src="https://github.com/Unix-User/PhPMineServerManager/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/Unix-User/PhPMineServerManager"><img src="https://img.shields.io/packagist/dt/Unix-User/PhPMineServerManager" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/Unix-User/PhPMineServerManager"><img src="https://img.shields.io/packagist/v/Unix-User/PhPMineServerManager" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/Unix-User/PhPMineServerManager"><img src="https://img.shields.io/packagist/l/Unix-User/PhPMineServerManager" alt="License"></a>
+<a href="https://github.com/Unix-User/PhPMineServerManager/actions"><img src="https://img.shields.io/github/workflow/status/Unix-User/PhPMineServerManager/tests" alt="Build Status"></a>
+<a href="https://github.com/Unix-User/PhPMineServerManager"><img src="https://img.shields.io/github/downloads/Unix-User/PhPMineServerManager/total" alt="Total Downloads"></a>
+<a href="https://github.com/Unix-User/PhPMineServerManager/releases"><img src="https://img.shields.io/github/v/release/Unix-User/PhPMineServerManager" alt="Latest Stable Version"></a>
+<a href="https://github.com/Unix-User/PhPMineServerManager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Unix-User/PhPMineServerManager" alt="License"></a>
+
 </p>
 
 ## Sobre o Projeto
