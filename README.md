@@ -207,32 +207,41 @@ Este é um gerenciador de servidor de Minecraft, construído com Laravel e Jetst
 
 1. Clone o repositório
     ```
-    git clone https://github.com/seuusuario/seuprojeto.git
+    git clone https://github.com/Unix-User/PhPMineServerManager.git
     ```
 2. Entre no diretório do projeto
     ```
-    cd seuprojeto
+    cd PhPMineServerManager
     ```
 3. Instale as dependências
     ```
     composer install
     ```
-4. Copie o arquivo de exemplo de ambiente e configure suas variáveis de ambiente
+4. Instale as dependências do npm
+    ```
+    npm install
+    ```
+5. Copie o arquivo de exemplo de ambiente e configure suas variáveis de ambiente
     ```
     cp .env.example .env
     ```
-5. Gere uma chave de aplicativo
+6. Gere uma chave de aplicativo
     ```
     php artisan key:generate
     ```
-6. Execute as migrações
+7. Execute as migrações
     ```
     php artisan migrate
     ```
-7. Inicie o servidor
+8. Compile os assets do front-end
+    ```
+    npm run dev
+    ```
+9. Inicie o servidor
     ```
     php artisan serve
     ```
+
 
 ## Inicialização
 
