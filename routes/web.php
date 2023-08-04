@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MinecraftController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,5 +35,9 @@ Route::middleware([
     })->name('dashboard');
     Route::get('/rcon', function () {
         return Inertia::render('RconConsole');
-    })->name('rcon');    
+    })->name('rcon');
+    Route::get('/map', function () {
+        return Inertia::render('MapIframe');
+    })->name('map');
+    Route::post('/run-minecraft-commands', [MinecraftController::class, 'runCommands']);
 });
