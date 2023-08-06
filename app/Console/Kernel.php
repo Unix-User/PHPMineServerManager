@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('minecraft:run-commands')->hourly();
+        $schedule->command('minecraft:poi-update')->everyFifteenMinutes();
+        $schedule->command('minecraft:map-update')->daily();
         // $schedule->command('inspire')->hourly();
     }
 

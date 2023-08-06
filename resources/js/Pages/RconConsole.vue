@@ -13,7 +13,7 @@ export default {
 
         const connectRcon = async () => {
             try {
-                await axios.post('/api/access-rcon-terminal', {
+                await axios.post('/access-rcon-terminal', {
                     command: 'connect',
                 });
             } catch (error) {
@@ -23,7 +23,7 @@ export default {
 
         const disconnectRcon = async () => {
             try {
-                await axios.post('/api/close-rcon-connection', {
+                await axios.post('/close-rcon-connection', {
                     command: 'disconnect',
                 });
             } catch (error) {
@@ -33,7 +33,7 @@ export default {
 
         const sendCommand = async () => {
             try {
-                const response = await axios.post('/api/execute-command', {
+                const response = await axios.post('/execute-command', {
                     command: command.value.trim(), // Clean input on send command
                 });
                 if (response.data) {

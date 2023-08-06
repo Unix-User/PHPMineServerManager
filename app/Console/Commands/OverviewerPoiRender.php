@@ -4,10 +4,10 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class RunMinecraftCommands extends Command
+class OverviewerPoiRender extends Command
 {
-    protected $signature = 'minecraft:run-commands';
-    protected $description = 'Run Minecraft commands';
+    protected $signature = 'minecraft:poi-update';
+    protected $description = 'Atualiza POIs usando overviewer';
 
     public function __construct()
     {
@@ -18,14 +18,12 @@ class RunMinecraftCommands extends Command
     {
         $overviewerPath = 'C:\Projetos\minecraft-server\overviewer-v1.20.1\overviewer.exe';
         $configPath = 'C:\Projetos\minecraft-server\config.conf';
+        $workingDirPath = 'C:\Projetos\minecraft-server';
 
         // Run first command
-        $command1 = "\"$overviewerPath\" --genpoi -c \"$configPath\"";
-        exec($command1);
-
-        // Run second command
-        $command2 = "\"$overviewerPath\" -c \"$configPath\"";
-        exec($command2);
+        $command = "\"$overviewerPath\" --genpoi -c \"$configPath\"";
+        chdir($workingDirPath);
+        exec($command);
 
         $this->info('Minecraft commands executed successfully.');
     }

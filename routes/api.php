@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\MinecraftRconController;
 use App\Http\Controllers\MinecraftOverviewerController;
+use App\Http\Controllers\ShopItemController;
 
 /*
 --------------------------------------------------------------------------
@@ -20,9 +21,3 @@ use App\Http\Controllers\MinecraftOverviewerController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::get('/status', [StatusController::class, 'show'])->name('status');
-Route::post('/execute-command', [MinecraftRconController::class, 'executeCommand'])->name('executeCommand');
-Route::post('/access-rcon-terminal', [MinecraftRconController::class, 'accessRconTerminal'])->name('accessRconTerminal');
-Route::post('/close-rcon-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('closeRconConnection');
-Route::get('/generate-maps', [MinecraftOverviewerController::class, 'index'])->name('generateMaps');

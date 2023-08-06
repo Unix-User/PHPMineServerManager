@@ -7,10 +7,21 @@ use Illuminate\Support\Facades\Artisan;
 
 class MinecraftController extends Controller
 {
-    public function runCommands()
+    protected function runUpdate($command, $message)
     {
-        Artisan::call('minecraft:run-commands');
+        Artisan::call($command);
 
-        return response()->json(['message' => 'Comandos Minecraft executados com sucesso.']);
+        return response()->json(['message' => $message]);
+    }
+
+    public function runPoiUpdate()
+    {
+        return $this->runUpdate('minecraft:poi-update', 'POI atualizado com sucesso.');
+    }
+
+    public function runMapUpdate()
+    {
+        return $this->runUpdate('minecraft:map-update', 'Mapa atualizado com sucesso.');
     }
 }
+

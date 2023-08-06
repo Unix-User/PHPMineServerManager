@@ -14,32 +14,45 @@ defineProps({
 export default {
     data() {
         return {
-            isLoading: false
+            isLoading: false,
         }
     },
     methods: {
-        runMinecraftCommands() {
+        runPoiUpdate() {
             this.isLoading = true;
-            // Chamar uma rota no backend Laravel para executar o comando
-            axios.post('/run-minecraft-commands')
+            axios.post('/run-poi-update')
                 .then(response => {
                     console.log(response.data);
-                    alert('Comandos Minecraft executados com sucesso.');
+                    alert('Entidades atualizadas com sucesso.');
                     this.isLoading = false;
                 })
                 .catch(error => {
                     console.error(error);
-                    alert('Ocorreu um erro ao executar os comandos.');
+                    alert('Ocorreu um erro ao Atualizar as entidades.');
+                    this.isLoading = false;
+                });
+        },
+        runMapUpdate() {
+            this.isLoading = true;
+            axios.post('/run-map-update')
+                .then(response => {
+                    console.log(response.data);
+                    alert('Mapa atualizado com sucesso.');
+                    this.isLoading = false;
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Ocorreu um erro ao autualiza o mapa.');
                     this.isLoading = false;
                 });
         }
     },
     components: {
-    AppLayout,
-    PrimaryButton
-},
+        AppLayout,
+        PrimaryButton
+    },
     setup() {
-        const iframeSrc = ref('http://127.0.0.1:82'); // replace with your iframe source
+        const iframeSrc = ref('http://minecraft.udianix.com.br:8082/'); // Removed process.env usage
         return {
             iframeSrc,
         };
@@ -56,7 +69,15 @@ export default {
                     Mapa
                 </h2>
                 <div class="ml-auto">
-                    <PrimaryButton @click="runMinecraftCommands" class="ml-auto" :loading="isLoading">
+                    <PrimaryButton @click="runPoiUpdate" class="ml-auto mr-2" :loading="isLoading">
+                        <template v-if="isLoading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                        </template>
+                        <template v-else>
+                            <i class="fas fa-sync"></i> Atualizar Entidades
+                        </template>
+                    </PrimaryButton>
+                    <PrimaryButton @click="runMapUpdate" class="ml-auto" :loading="isLoading">
                         <template v-if="isLoading">
                             <i class="fas fa-spinner fa-spin"></i> Loading...
                         </template>
@@ -87,4 +108,7 @@ export default {
 </template>
 
 <style scoped></style>
+
+
+
 

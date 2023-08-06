@@ -13,7 +13,8 @@ class MinecraftRconController extends Controller
 
     public function __construct()
     {
-        $this->rcon = new Rcon('127.0.0.1', 25575, 'Dracar2s', 3);
+        $this->rcon = new Rcon(env('RCON_SERVER', '127.0.0.1'), env('RCON_PORT', 25575), env('RCON_PASSWORD', 'Dracar2s'), 3);
+
     }
 
     public function executeCommand(Request $request)
