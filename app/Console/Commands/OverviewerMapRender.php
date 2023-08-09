@@ -21,7 +21,7 @@ class OverviewerMapRender extends Command
         $workingDirPath = 'C:\Projetos\minecraft-server';
 
         // Run first command
-        $command = "\"$overviewerPath\" --genpoi -c \"$configPath\"";
+        $command = "\"$overviewerPath\" -c \"$configPath\"";
         chdir($workingDirPath);
         exec($command);
 

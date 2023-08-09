@@ -60,6 +60,8 @@ Route::middleware([
         Route::post('execute-command', [MinecraftRconController::class, 'executeCommand'])->name('executeCommand');
         Route::post('access-rcon-terminal', [MinecraftRconController::class, 'accessRconTerminal'])->middleware('auth:sanctum')->name('accessRconTerminal');
         Route::post('close-rcon-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('closeRconConnection');
-        Route::get('/status', [StatusController::class, 'show'])->name('status');
+        Route::get('status', [StatusController::class, 'show'])->name('status');
+        Route::get('rules', [MinecraftController::class, 'serverRules'])->name('rules');
+        Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
     });
 });

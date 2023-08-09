@@ -1,47 +1,56 @@
 <?php
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-
 class StatusController extends Controller
 {
+    private $host;
+    private $port = 25565;
+
+    public function __construct()
+    {
+        $this->host = gethostbyname(gethostname());
+    }
+
     public function show()
     {
-        $process = new Process(['cmd', '/c', 'java', '-version']);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-
-        $javaVersion = $process->getOutput();
-
-        $process = new Process(['cmd', '/c', 'tasklist', '|', 'findstr', 'java']);
-        $process->run();
-
-        $isProgramRunning = $process->isSuccessful();
-
-        $ipAddress = gethostbyname(gethostname());
-
-        $socket = @fsockopen($ipAddress, 25565, $errno, $errstr, 1);
-        if ($socket)
-        {
-            $portStatus = 'open';
-            fclose($socket);
-        }
-        else
-        {
-            $portStatus = 'closed';
-        }
-
         return response()->json([
-            'javaVersion' => $javaVersion,
-            'isProgramRunning' => $isProgramRunning,
-            'ipAddress' => $ipAddress,
-            'portStatus' => $portStatus,
+            'javaVersion' => $this->getJavaVersion(),
+            'isProgramRunning' => $this->isServiceRunning(),
+            'ipAddress' => $this->host,
+            'portStatus' => $this->getPortStatus(),
         ]);
+    }
+
+    private function getJavaVersion()
+    {
+        exec('java -version 2>&1', $output);
+        preg_match('/version "(.*?)"/', $output[0], $matches);
+        return $matches[1] ?? 'Unknown';
+    }
+
+    private function isServiceRunning()
+    {
+        $serviceName = 'Minecraft_Server';
+        $serviceStatus = shell_exec('sc query ' . $serviceName);
+
+        if (strpos($serviceStatus, '1060') !== false) {
+            return ['installed' => false, 'running' => false];
+        } else {
+            return ['installed' => true, 'running' => strpos($serviceStatus, 'RUNNING') !== false];
+        }
+    }
+
+    private function getPortStatus()
+    {
+        $connection = @fsockopen($this->host, $this->port);
+
+        if (is_resource($connection)) {
+            fclose($connection);
+            return 'Aberta';
+        } else {
+            error_log('Unable to establish connection');
+            return 'Fechada';
+        }
     }
 }
 ?>

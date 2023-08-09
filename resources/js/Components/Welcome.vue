@@ -10,7 +10,7 @@ const serverStatus = reactive({
     portStatus: ''
 });
 
-axios.get('/api/status')
+axios.get('/status')
     .then(response => {
         if (response.data) {
             Object.assign(serverStatus, response.data);
@@ -33,19 +33,18 @@ axios.get('/api/status')
             Esta é a página administrativa do nosso servidor. Aqui você pode monitorar o status do servidor, verificar a
             versão do Java instalada, verificar se o programa está rodando e o endereço IP do host.
         </p>
-
-        <div class="grid grid-cols-4 gap-6 mt-6 text-gray-500 leading-relaxed">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6 text-gray-500 leading-relaxed">
             <div class="badge bg-blue-500 text-white px-3 py-1 rounded-full">
-                Versão do Java instalada: {{ serverStatus.javaVersion }}
+                Java: {{ serverStatus.javaVersion }}
             </div>
             <div class="badge bg-green-500 text-white px-3 py-1 rounded-full">
-                Programa está rodando: {{ serverStatus.isProgramRunning ? 'Sim' : 'Não' }}
+                {{ serverStatus.isProgramRunning ? 'Rodando' : 'Parado' }}
+            </div>
+            <div class="badge bg-yellow-500 text-white px-3 py-1 rounded-full">
+                IP: {{ serverStatus.ipAddress }}
             </div>
             <div class="badge bg-red-500 text-white px-3 py-1 rounded-full">
-                Endereço IP do host: {{ serverStatus.ipAddress }}
-            </div>
-            <div class="badge bg-red-500 text-white px-3 py-1 rounded-full">
-                Status da porta: {{ serverStatus.portStatus }}
+                Porta 25565: {{ serverStatus.portStatus }}
             </div>
         </div>
 
@@ -126,6 +125,7 @@ axios.get('/api/status')
                     servidor.
                 </p>
             </div>
+        </div>
     </div>
-</div></template>
+</template>
 

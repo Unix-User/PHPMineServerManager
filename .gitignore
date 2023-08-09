@@ -19,3 +19,4 @@ web.config
 /.fleet
 /.idea
 /.vscode
+scheduler.cmd

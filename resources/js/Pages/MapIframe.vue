@@ -66,7 +66,7 @@ export default {
         <template #header class="flex justify-between items-center">
             <div class="flex justify-between w-full">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Mapa
+                    Mapa atualizado diariamente
                 </h2>
                 <div class="ml-auto">
                     <PrimaryButton @click="runPoiUpdate" class="ml-auto mr-2" :loading="isLoading">
