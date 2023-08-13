@@ -39,7 +39,7 @@ class MinecraftRconController extends Controller
             $this->isConnected = $this->rcon->connect();
         }
 
-        Log::channel('single')->info('User ' . $request->user()->id . ' is sending command: ' . $validatedData['command']);
+        Log::channel('single')->info('User ' . $request->user()->email . ' is sending command: ' . $validatedData['command']);
         Log::channel('single')->info('Connection status: ' . ($this->isConnected ? 'Connected' : 'Not Connected'));
 
         return $this->sendCommandToServer($validatedData['command']);

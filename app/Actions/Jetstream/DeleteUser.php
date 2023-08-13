@@ -30,12 +30,16 @@ class DeleteUser implements DeletesUsers
      */
     public function delete(User $user): void
     {
-        DB::transaction(function () use ($user) {
-            $this->deleteTeams($user);
-            $user->deleteProfilePhoto();
-            $user->tokens->each->delete();
-            $user->delete();
-        });
+        if(request()->isMethod('delete')) {
+            DB::transaction(function () use ($user) {
+                $this->deleteTeams($user);
+                $user->deleteProfilePhoto();
+                $user->tokens->each->delete();
+                $user->delete();
+            });
+        } else {
+            abort(405, 'Method Not Allowed');
+        }
     }
 
     /**
@@ -50,3 +54,4 @@ class DeleteUser implements DeletesUsers
         });
     }
 }
+

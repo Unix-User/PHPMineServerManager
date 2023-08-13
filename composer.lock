@@ -4,49 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3ce5b3b720aec6ff9e8e71a53be91a75",
+    "content-hash": "0854ee86d49fa42ac22b457ee02a5f1b",
     "packages": [
-        {
-            "name": "ahmedsaoud31/laravel-permission-to-vuejs",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ahmedsaoud31/laravel-permission-to-vuejs.git",
-                "reference": "0c2a5d6a02a1a00b6257a19929e4cb4b49c4dde5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ahmedsaoud31/laravel-permission-to-vuejs/zipball/0c2a5d6a02a1a00b6257a19929e4cb4b49c4dde5",
-                "reference": "0c2a5d6a02a1a00b6257a19929e4cb4b49c4dde5",
-                "shasum": ""
-            },
-            "require": {
-                "spatie/laravel-permission": ">=2.0"
-            },
-            "default-branch": true,
-            "type": "plugin",
-            "autoload": {
-                "psr-4": {
-                    "LaravelAndVueJS\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ahmed Abeoelsaoud",
-                    "email": "ahmedsaoud31@gmail.com"
-                }
-            ],
-            "description": "Laravel Permission Package To Use it in VueJs",
-            "support": {
-                "issues": "https://github.com/ahmedsaoud31/laravel-permission-to-vuejs/issues",
-                "source": "https://github.com/ahmedsaoud31/laravel-permission-to-vuejs/tree/master"
-            },
-            "time": "2023-08-07T03:31:54+00:00"
-        },
         {
             "name": "bacon/bacon-qr-code",
             "version": "2.0.8",
@@ -8795,9 +8754,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "ahmedsaoud31/laravel-permission-to-vuejs": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

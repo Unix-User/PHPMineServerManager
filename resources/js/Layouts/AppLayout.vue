@@ -7,14 +7,12 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { usePermissions } from '@spatie/vue3-permission-plugin';
 
 defineProps({
     title: String,
 });
 
 const showingNavigationDropdown = ref(false);
-const { can } = usePermissions();
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -51,22 +49,16 @@ const logout = () => {
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink v-if="can('view-dashboard')" :href="route('dashboard')" :active="route().current('dashboard')">
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-                            </div>
-                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink v-if="can('view-rcon')" :href="route('rcon')" :active="route().current('rcon')">
+                                <NavLink :href="route('rcon')" :active="route().current('rcon')" v-if="$page.props.user.roles.includes('admin')">
                                     Rcon
                                 </NavLink>
-                            </div>
-                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink v-if="can('view-map')" :href="route('map')" :active="route().current('map')">
+                                <NavLink :href="route('map')" :active="route().current('map')">
                                     Mapa
                                 </NavLink>
-                            </div>
-                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink v-if="can('view-items')" :href="route('shop.items')" :active="route().current('shop.items')">
+                                <NavLink :href="route('shop.items')" :active="route().current('shop.items')">
                                     Items
                                 </NavLink>
                             </div>
@@ -222,7 +214,7 @@ const logout = () => {
                 <div :class="{ 'block': showingNavigationDropdown, 'hidden': !showingNavigationDropdown }"
                     class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink v-if="can('view-dashboard')" :href="route('dashboard')" :active="route().current('dashboard')">
+                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
                     </div>
@@ -326,4 +318,3 @@ const logout = () => {
         </div>
     </div>
 </template>
-

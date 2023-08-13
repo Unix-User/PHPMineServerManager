@@ -1,21 +1,38 @@
 <?php
+
+namespace Database\Seeders;
+
 use App\Models\User;
+use App\Models\Team;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
     public function run()
     {
-        $adminRole = Role::create(['name' => 'Administrator']);
-        $permission = Permission::create(['name' => 'manage tasks']);
-        $permission->assignRole($adminRole);
+        $users = [
+            [
+                'name' => 'Admin',
+                'email' => 'admin@admin.com',
+                'password' => 'SecurePassword',
+                'role' => 'admin'
+            ]
+        ];
+        foreach ($users as $user) {
+            $adminUser = User::create([
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'password' => Hash::make($user['password']),
+            ]);
+            $adminUser->assignRole($user['role']);
 
-        $adminUser = User::factory()->create([
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('SecurePassword')
-        ]);
-        $adminUser->assignRole('Administrator');
+            // Create a personal team for the admin user
+            $adminUser->ownedTeams()->save(Team::forceCreate([
+                'user_id' => $adminUser->id,
+                'name' => explode(' ', $adminUser->name, 2)[0]."'s Team",
+                'personal_team' => true,
+            ]));
+        }
     }
 }

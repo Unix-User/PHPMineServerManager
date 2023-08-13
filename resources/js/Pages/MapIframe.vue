@@ -52,7 +52,7 @@ export default {
         PrimaryButton
     },
     setup() {
-        const iframeSrc = ref('http://minecraft.udianix.com.br:8082/'); // Removed process.env usage
+        const iframeSrc = ref('http://minecraft.udianix.com.br:8082/');
         return {
             iframeSrc,
         };
@@ -68,7 +68,7 @@ export default {
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     Mapa atualizado diariamente
                 </h2>
-                <div class="ml-auto">
+                <div class="ml-auto" v-if="$page.props.user.roles.includes('admin')">
                     <PrimaryButton @click="runPoiUpdate" class="ml-auto mr-2" :loading="isLoading">
                         <template v-if="isLoading">
                             <i class="fas fa-spinner fa-spin"></i> Loading...
