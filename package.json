@@ -20,6 +20,7 @@
         "vue": "^3.2.31"
     },
     "dependencies": {
+        "laravel-permission-to-vuejs": "^3.0.1",
         "vue-cli": "^2.9.6"
     }
 }

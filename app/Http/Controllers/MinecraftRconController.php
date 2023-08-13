@@ -13,7 +13,7 @@ class MinecraftRconController extends Controller
 
     public function __construct()
     {
-        $this->rcon = new Rcon(env('RCON_SERVER', '127.0.0.1'), env('RCON_PORT', 25575), env('RCON_PASSWORD', 'Dracar2s'), 3);
+        $this->rcon = new Rcon(env('RCON_SERVER', '127.0.0.1'), env('RCON_PORT', 25575), env('RCON_PASSWORD', 'password'), 3);
 
     }
 
@@ -25,6 +25,9 @@ class MinecraftRconController extends Controller
             $this->isConnected = $this->rcon->connect();
         }
 
+        Log::channel('single')->info('User ' . $request->user()->email . ' is sending command: ' . $validatedData['command']);
+        Log::channel('single')->info('Connection status: ' . ($this->isConnected ? 'Connected' : 'Not Connected'));
+
         return $this->sendCommandToServer($validatedData['command']);
     }
 
@@ -35,6 +38,9 @@ class MinecraftRconController extends Controller
         if (!$this->isConnected) {
             $this->isConnected = $this->rcon->connect();
         }
+
+        Log::channel('single')->info('User ' . $request->user()->id . ' is sending command: ' . $validatedData['command']);
+        Log::channel('single')->info('Connection status: ' . ($this->isConnected ? 'Connected' : 'Not Connected'));
 
         return $this->sendCommandToServer($validatedData['command']);
     }
@@ -55,13 +61,15 @@ class MinecraftRconController extends Controller
         try {
             $response = $this->rcon->sendCommand($command);
         } catch (\Exception $e) {
-            Log::error($e);
+            Log::channel('single')->error($e);
             return response()->json(['response' => 'Command execution failed'], 500);
         }
 
         if ($response === false) {
             return response()->json(['response' => 'Command execution failed'], 500);
         }
+
+        Log::channel('single')->info('Command response: ' . $response);
 
         return response()->json(['response' => $response]);
     }
@@ -73,7 +81,10 @@ class MinecraftRconController extends Controller
             $this->isConnected = false;
         }
 
+        Log::channel('single')->info('RCON connection closed');
+
         return response()->json(['message' => 'RCON connection closed']);
     }
 }
+
 
