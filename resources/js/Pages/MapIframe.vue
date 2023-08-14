@@ -20,7 +20,7 @@ export default {
     methods: {
         runPoiUpdate() {
             this.isLoading = true;
-            axios.post('/minecraft/run-poi-update')
+            axios.post('/run-poi-update')
                 .then(response => {
                     console.log(response.data);
                     alert('Entidades atualizadas com sucesso.');
@@ -34,7 +34,7 @@ export default {
         },
         runMapUpdate() {
             this.isLoading = true;
-            axios.post('/minecraft/run-map-update')
+            axios.post('/run-map-update')
                 .then(response => {
                     console.log(response.data);
                     alert('Mapa atualizado com sucesso.');
@@ -63,12 +63,12 @@ export default {
 
 <template>
     <AppLayout title="Map">
-        <template #header class="flex justify-between items-center">
-            <div class="flex justify-between w-full">
+        <template #header class="flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between w-full">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     Mapa atualizado diariamente
                 </h2>
-                <div class="ml-auto" v-if="$page.props.user.roles.includes('admin')">
+                <div class="mt-4 sm:mt-0 sm:ml-auto" v-if="$page.props.user.roles.includes('admin')">
                     <PrimaryButton @click="runPoiUpdate" class="ml-auto mr-2" :loading="isLoading">
                         <template v-if="isLoading">
                             <i class="fas fa-spinner fa-spin"></i> Loading...
@@ -107,7 +107,14 @@ export default {
     </AppLayout>
 </template>
 
-<style scoped></style>
+<style scoped>
+@media (max-width: 640px) {
+    #mapContent {
+        padding: 0;
+    }
+}
+</style>
+
 
 
 

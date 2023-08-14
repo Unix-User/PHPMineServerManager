@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class ShopItemController extends Controller
 {
@@ -14,6 +15,7 @@ class ShopItemController extends Controller
         'name' => 'required',
         'description' => 'required',
         'price' => 'required|numeric',
+        'item_photo_path' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
     ];
 
     /**
@@ -32,6 +34,12 @@ class ShopItemController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate($this->rules);
+        $image = $request->file('item_photo_path');
+        if($image){
+            $fileName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = Storage::disk('public')->put('shop-item-photos/' . $fileName, file_get_contents($image));
+            $validatedData['item_photo_path'] = $imagePath;
+        }
 
         $shopItem = ShopItem::create($validatedData);
         Cache::forget('shopItems');
@@ -57,9 +65,17 @@ class ShopItemController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $validatedData = $request->validate($this->rules);
-
         $shopItem = ShopItem::findOrFail($id);
+        $validatedData = $request->validate($this->rules);
+        $image = $request->file('item_photo_path');
+        if($image){
+            $fileName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = Storage::disk('public')->put('shop-item-photos/' . $fileName, file_get_contents($image));
+            $validatedData['item_photo_path'] = $imagePath;
+        } else if($request->input('remove_image')) {
+            $validatedData['item_photo_path'] = null;
+        }
+
         $shopItem->update($validatedData);
         Cache::forget('shopItems');
         Cache::forget('shopItem_' . $id);
@@ -80,4 +96,5 @@ class ShopItemController extends Controller
         return redirect()->route('shopItems.index');
     }
 }
+
 

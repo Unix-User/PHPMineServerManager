@@ -52,12 +52,19 @@ const logout = () => {
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-                                <NavLink :href="route('rcon')" :active="route().current('rcon')" v-if="$page.props.user.roles.includes('admin')">
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                                <NavLink :href="route('rcon')" :active="route().current('rcon')"
+                                    v-if="$page.props.user.roles.includes('admin')">
                                     Rcon
                                 </NavLink>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <NavLink :href="route('map')" :active="route().current('map')">
                                     Mapa
                                 </NavLink>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <NavLink :href="route('shop.items')" :active="route().current('shop.items')">
                                     Items
                                 </NavLink>
@@ -216,6 +223,21 @@ const logout = () => {
                     <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
+                        </ResponsiveNavLink>
+                    </div>
+                    <div class="pt-2 pb-3 space-y-1">
+                        <ResponsiveNavLink :href="route('rcon')" :active="route().current('rcon')">
+                            Rcon
+                        </ResponsiveNavLink>
+                    </div>
+                    <div class="pt-2 pb-3 space-y-1">
+                        <ResponsiveNavLink :href="route('map')" :active="route().current('map')">
+                            Mapa
+                        </ResponsiveNavLink>
+                    </div>
+                    <div class="pt-2 pb-3 space-y-1">
+                        <ResponsiveNavLink :href="route('shop.items')" :active="route().current('shop.items')">
+                            Items
                         </ResponsiveNavLink>
                     </div>
 

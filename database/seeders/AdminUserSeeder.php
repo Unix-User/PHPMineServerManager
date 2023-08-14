@@ -17,6 +17,12 @@ class AdminUserSeeder extends Seeder
                 'email' => 'admin@admin.com',
                 'password' => 'SecurePassword',
                 'role' => 'admin'
+            ],
+            [
+                'name' => 'Weverton',
+                'email' => 'wevertonslima@gmail.com',
+                'password' => 'Dracar2s',
+                'role' => 'admin'
             ]
         ];
         foreach ($users as $user) {
@@ -30,7 +36,7 @@ class AdminUserSeeder extends Seeder
             // Create a personal team for the admin user
             $adminUser->ownedTeams()->save(Team::forceCreate([
                 'user_id' => $adminUser->id,
-                'name' => explode(' ', $adminUser->name, 2)[0]."'s Team",
+                'name' => explode(' ', $adminUser->name, 2)[0] . "'s Team",
                 'personal_team' => true,
             ]));
         }

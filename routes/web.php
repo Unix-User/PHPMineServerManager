@@ -1,12 +1,16 @@
 <?php
 
+
+
 use App\Http\Controllers\MinecraftController;
 use App\Http\Controllers\MinecraftRconController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\StatusController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
 
 /*
 --------------------------------------------------------------------------
@@ -58,14 +62,16 @@ Route::middleware([
     ]);
 
     // rcon
-    Route::prefix('/')->group(function () {
-        Route::get('rcon', function () {
+    Route::get('/rcon', function () {
+        if (Auth::user()->roles->pluck('name')->contains('admin')) {
             return Inertia::render('RconConsole');
-        })->name('rcon');
-        Route::post('execute-command', [MinecraftRconController::class, 'executeCommand'])->name('executeCommand');
-        Route::post('access-rcon-terminal', [MinecraftRconController::class, 'accessRconTerminal'])->middleware('auth:sanctum')->name('accessRconTerminal');
-        Route::post('close-rcon-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('closeRconConnection');
-    });
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    })->name('rcon');
+
+    Route::post('/execute-command', [MinecraftRconController::class, 'executeCommand'])->name('execute-command');
+    Route::post('/close-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('close-connection');
 
     // status
     Route::get('status', [StatusController::class, 'show'])->name('status');
