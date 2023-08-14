@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'udianix.com.br'),
+    'name' => env('APP_NAME', 'minecraft.udianix.com.br'),
 
     /*
     |--------------------------------------------------------------------------

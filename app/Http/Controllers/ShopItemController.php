@@ -5,69 +5,79 @@ namespace App\Http\Controllers;
 use App\Models\ShopItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
 
 class ShopItemController extends Controller
 {
+    protected $rules = [
+        'name' => 'required',
+        'description' => 'required',
+        'price' => 'required|numeric',
+    ];
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $perPage = $request->get('perPage', 10);
-        $page = $request->get('page', 1);
-
-        $items = Cache::remember("shop.items.page.$page", 60, function () use ($perPage, $page) {
-            return ShopItem::query()
-                ->orderBy('created_at', 'desc')
-                ->skip(($page - 1) * $perPage)
-                ->take($perPage)
-                ->get();
-        });
-
-        return response()->json([
-            'items' => $items,
-            'page' => $page,
-            'perPage' => $perPage,
-        ]);
+        $shopItems = Cache::get('shopItems', fn() => ShopItem::all());
+        return Inertia::render('ShopItems', ['shopItems' => $shopItems]);
     }
-
     /**
      * Store a newly created resource in storage.
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
-        // TODO: Implement store method
+        $validatedData = $request->validate($this->rules);
+
+        $shopItem = ShopItem::create($validatedData);
+        Cache::forget('shopItems');
+        return redirect()->route('shopItems.index');
     }
 
     /**
      * Display the specified resource.
+     * @param int $id
+     * @return \Inertia\Response
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        // TODO: Implement show method
+        $shopItem = Cache::get('shopItem_' . $id, fn() => ShopItem::findOrFail($id));
+        return Inertia::render('ShopItems/Show', ['shopItem' => $shopItem]);
     }
 
     /**
      * Update the specified resource in storage.
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
-        // TODO: Implement update method
+        $validatedData = $request->validate($this->rules);
+
+        $shopItem = ShopItem::findOrFail($id);
+        $shopItem->update($validatedData);
+        Cache::forget('shopItems');
+        Cache::forget('shopItem_' . $id);
+        return redirect()->route('shopItems.index');
     }
 
     /**
      * Remove the specified resource from storage.
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        $item = ShopItem::findOrFail($id);
-        $item->delete();
-
-        Cache::tags('shop.items')->flush();
-
-        return redirect()->back();
+        $shopItem = ShopItem::findOrFail($id);
+        $shopItem->delete();
+        Cache::forget('shopItems');
+        Cache::forget('shopItem_' . $id);
+        return redirect()->route('shopItems.index');
     }
 }
-
-
 

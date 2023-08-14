@@ -20,7 +20,7 @@ export default {
     methods: {
         runPoiUpdate() {
             this.isLoading = true;
-            axios.post('/run-poi-update')
+            axios.post('/minecraft/run-poi-update')
                 .then(response => {
                     console.log(response.data);
                     alert('Entidades atualizadas com sucesso.');
@@ -34,7 +34,7 @@ export default {
         },
         runMapUpdate() {
             this.isLoading = true;
-            axios.post('/run-map-update')
+            axios.post('/minecraft/run-map-update')
                 .then(response => {
                     console.log(response.data);
                     alert('Mapa atualizado com sucesso.');

@@ -27,41 +27,46 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+Route::get('rules', [MinecraftController::class, 'serverRules'])->name('rules');
+Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
 
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+    // dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
-    Route::get('/rcon', function () {
-        return Inertia::render('RconConsole');
-    })->name('rcon');
+
+    // map
     Route::get('/map', function () {
         return Inertia::render('MapIframe');
     })->name('map');
+
     Route::post('/run-poi-update', [MinecraftController::class, 'runPoiUpdate']);
     Route::post('/run-map-update', [MinecraftController::class, 'runMapUpdate']);
-    Route::prefix('/shop/items')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('ShopItems');
-        })->name('shop.items');
-        Route::post('/', [ShopItemController::class, 'store'])->name('shop.items.store');
-        Route::get('/{id}', function ($id) {
-            return Inertia::render('ShopItem', ['id' => $id]);
-        })->name('shop.items.show');
-        Route::put('/{id}', [ShopItemController::class, 'update'])->name('shop.items.update');
-        Route::delete('/{id}', [ShopItemController::class, 'destroy'])->name('shop.items.delete');
-    });
 
+    // shop
+    Route::resource('shop/items', ShopItemController::class)->names([
+        'index' => 'shop.items',
+        'store' => 'shop.items.store',
+        'show' => 'shop.items.show',
+        'update' => 'shop.items.update',
+        'destroy' => 'shop.items.delete',
+    ]);
+
+    // rcon
     Route::prefix('/')->group(function () {
+        Route::get('rcon', function () {
+            return Inertia::render('RconConsole');
+        })->name('rcon');
         Route::post('execute-command', [MinecraftRconController::class, 'executeCommand'])->name('executeCommand');
         Route::post('access-rcon-terminal', [MinecraftRconController::class, 'accessRconTerminal'])->middleware('auth:sanctum')->name('accessRconTerminal');
         Route::post('close-rcon-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('closeRconConnection');
-        Route::get('status', [StatusController::class, 'show'])->name('status');
-        Route::get('rules', [MinecraftController::class, 'serverRules'])->name('rules');
-        Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
     });
+
+    // status
+    Route::get('status', [StatusController::class, 'show'])->name('status');
 });
