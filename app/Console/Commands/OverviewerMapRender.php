@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\MapUpdateJob;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class OverviewerMapRender extends Command
 {
@@ -16,16 +18,7 @@ class OverviewerMapRender extends Command
 
     public function handle()
     {
-        $overviewerPath = 'C:\Projetos\minecraft-server\overviewer-v1.20.1\overviewer.exe';
-        $configPath = 'C:\Projetos\minecraft-server\config.conf';
-        $workingDirPath = 'C:\Projetos\minecraft-server';
-
-        // Run first command
-        $command = "\"$overviewerPath\" -c \"$configPath\"";
-        chdir($workingDirPath);
-        exec($command);
-
-        $this->info('Minecraft commands executed successfully.');
+        Log::info('Tarefa de atualização do mapa enfileirada com sucesso.');
+        MapUpdateJob::dispatch();
     }
-
 }

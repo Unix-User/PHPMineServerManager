@@ -11,56 +11,63 @@ defineProps({
     },
 });
 
+const isLoading = ref(false);
+
+const fetchBusyStatus = async () => {
+    try {
+        const response = await axios.get('/busy');
+        isLoading.value = response.data.isBusy === true;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const runPoiUpdate = async () => {
+    try {
+        isLoading.value = true;
+        const response = await axios.post('/run-poi-update');
+        console.log(response.data);
+        alert('Entidades atualizadas com sucesso.');
+    } catch (error) {
+        console.error(error);
+        alert('Ocorreu um erro ao Atualizar as entidades.');
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const runMapUpdate = async () => {
+    try {
+        isLoading.value = true;
+        const response = await axios.post('/run-map-update');
+        console.log(response.data);
+        alert('Mapa atualizado com sucesso.');
+    } catch (error) {
+        console.error(error);
+        alert('Ocorreu um erro ao autualiza o mapa.');
+    } finally {
+        isLoading.value = false;
+    }
+};
+
 export default {
-    data() {
-        return {
-            isLoading: false,
-        }
-    },
-    methods: {
-        runPoiUpdate() {
-            this.isLoading = true;
-            axios.post('/run-poi-update')
-                .then(response => {
-                    console.log(response.data);
-                    alert('Entidades atualizadas com sucesso.');
-                    this.isLoading = false;
-                })
-                .catch(error => {
-                    console.error(error);
-                    alert('Ocorreu um erro ao Atualizar as entidades.');
-                    this.isLoading = false;
-                });
-        },
-        runMapUpdate() {
-            this.isLoading = true;
-            axios.post('/run-map-update')
-                .then(response => {
-                    console.log(response.data);
-                    alert('Mapa atualizado com sucesso.');
-                    this.isLoading = false;
-                })
-                .catch(error => {
-                    console.error(error);
-                    alert('Ocorreu um erro ao autualiza o mapa.');
-                    this.isLoading = false;
-                });
-        }
-    },
     components: {
         AppLayout,
         PrimaryButton
     },
     setup() {
-        const iframeSrc = ref('http://minecraft.udianix.com.br:8082/');
+        const iframeSrc = ref('https://overviewer.udianix.com.br/#/-433/64/241/-1/survival/daytime');
+        fetchBusyStatus();
         return {
+            isLoading,
             iframeSrc,
+            runPoiUpdate,
+            runMapUpdate
         };
     },
 };
 
 </script>
-
 <template>
     <AppLayout title="Map">
         <template #header class="flex flex-col sm:flex-row justify-between items-center">
@@ -71,7 +78,7 @@ export default {
                 <div class="mt-4 sm:mt-0 sm:ml-auto" v-if="$page.props.user.roles.includes('admin')">
                     <PrimaryButton @click="runPoiUpdate" class="ml-auto mr-2" :loading="isLoading">
                         <template v-if="isLoading">
-                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                            <i class="fas fa-spinner fa-spin"></i> Atualizando...
                         </template>
                         <template v-else>
                             <i class="fas fa-sync"></i> Atualizar Entidades
@@ -79,7 +86,7 @@ export default {
                     </PrimaryButton>
                     <PrimaryButton @click="runMapUpdate" class="ml-auto" :loading="isLoading">
                         <template v-if="isLoading">
-                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                            <i class="fas fa-spinner fa-spin"></i> Atualizando...
                         </template>
                         <template v-else>
                             <i class="fas fa-sync"></i> Atualizar Mapa
@@ -88,9 +95,6 @@ export default {
                 </div>
             </div>
         </template>
-
-
-
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -106,7 +110,6 @@ export default {
         </div>
     </AppLayout>
 </template>
-
 <style scoped>
 @media (max-width: 640px) {
     #mapContent {
@@ -114,8 +117,3 @@ export default {
     }
 }
 </style>
-
-
-
-
-

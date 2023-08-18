@@ -75,4 +75,5 @@ Route::middleware([
 
     // status
     Route::get('status', [StatusController::class, 'show'])->name('status');
+    Route::get('busy', [StatusController::class, 'overviewerIsRunning'])->name('busy');
 });

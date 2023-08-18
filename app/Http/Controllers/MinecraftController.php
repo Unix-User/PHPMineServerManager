@@ -39,6 +39,6 @@ class MinecraftController extends Controller
 
     public function runMapUpdate()
     {
-        return $this->runUpdate('minecraft:map-update', 'Mapa atualizado com sucesso.');
+        return $this->runUpdate("minecraft:map-update", 'Mapa atualizado com sucesso.');
     }
 }

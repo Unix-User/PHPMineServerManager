@@ -8,7 +8,8 @@ class StatusController extends Controller
 
     public function __construct()
     {
-        $this->host = gethostbyname(gethostname());
+        
+        $this->host = gethostbyname(env('MINECRAFT_SERVER'));
     }
 
     public function show()
@@ -51,6 +52,16 @@ class StatusController extends Controller
             error_log('Unable to establish connection');
             return 'Fechada';
         }
+    }
+
+    public function overviewerIsRunning()
+    {
+        $processName = 'overviewer.exe';
+        $command = 'tasklist /FI "IMAGENAME eq ' . $processName . '"';
+        $processes = shell_exec($command);
+        $processes = mb_convert_encoding($processes, 'UTF-8', 'UTF-8');
+        $isRunning = strpos($processes, $processName) !== false;
+        return ['isBusy' => $isRunning, 'output' => $processes];
     }
 }
 ?>
