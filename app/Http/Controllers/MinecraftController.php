@@ -8,6 +8,14 @@ use Inertia\Inertia;
 
 class MinecraftController extends Controller
 {
+    public function factionCommands()
+    {
+        $markdownFilePath = storage_path('..\resources\markdown\medieval-factions.md');
+        $factionCommands = file_get_contents($markdownFilePath);
+        $parsedFactionCommands = Markdown::parse($factionCommands)->toHtml(); // Change this line
+        return Inertia::render('FactionCommands', ['factionCommands' => $parsedFactionCommands]);
+    }
+
     public function serverRules()
     {
         $markdownFilePath = storage_path('..\resources\markdown\rules.md');
@@ -23,7 +31,6 @@ class MinecraftController extends Controller
         $parsedMD = Markdown::parse($rules)->toHtml(); // Change this line
         return Inertia::render('Donations', ['donations' => $parsedMD]);
     }
-
 
     protected function runUpdate($command, $message)
     {

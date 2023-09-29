@@ -28,7 +28,7 @@ class MapUpdateJob implements ShouldQueue
     public function handle()
     {
         $paths = [
-            'overviewer' => 'C:\Projetos\minecraft-server\overviewer-v1.20.1\overviewer.exe',
+            'overviewer' => 'C:\Projetos\minecraft-server\overviewer-v1.20.3\overviewer.exe',
             'config' => 'C:\Projetos\minecraft-server\config.conf',
             'workingDir' => 'C:\Projetos\minecraft-server'
         ];

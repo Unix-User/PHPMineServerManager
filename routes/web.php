@@ -1,11 +1,9 @@
 <?php
-
-
-
 use App\Http\Controllers\MinecraftController;
 use App\Http\Controllers\MinecraftRconController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\UpdatePostsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +31,16 @@ Route::get('/', function () {
 });
 Route::get('rules', [MinecraftController::class, 'serverRules'])->name('rules');
 Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
+Route::get('factionCommands', [MinecraftController::class, 'factionCommands'])->name('factionCommands');
+
+// updates
+Route::resource('update/posts', UpdatePostsController::class)->names([
+    'index' => 'update.posts',
+    'store' => 'update.posts.store',
+    'show' => 'update.posts.show',
+    'update' => 'update.posts.update',
+    'destroy' => 'update.posts.delete',
+]);
 
 Route::middleware([
     'auth:sanctum',
@@ -49,6 +57,11 @@ Route::middleware([
         return Inertia::render('MapIframe');
     })->name('map');
 
+    Route::get('/factions', function () {
+        return Inertia::render('Factions');
+    })->name('factions');
+
+
     Route::post('/run-poi-update', [MinecraftController::class, 'runPoiUpdate']);
     Route::post('/run-map-update', [MinecraftController::class, 'runMapUpdate']);
 
@@ -60,6 +73,8 @@ Route::middleware([
         'update' => 'shop.items.update',
         'destroy' => 'shop.items.delete',
     ]);
+
+    
 
     // rcon
     Route::get('/rcon', function () {

@@ -26,6 +26,7 @@ class ShopItemController extends Controller
         $shopItems = Cache::get('shopItems', fn() => ShopItem::all());
         return Inertia::render('ShopItems', ['shopItems' => $shopItems]);
     }
+
     /**
      * Store a newly created resource in storage.
      * @param Request $request
@@ -34,6 +35,10 @@ class ShopItemController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate($this->rules);
+
+        
+
+        
         $image = $request->file('item_photo_path');
         if($image){
             $fileName = time() . '.' . $image->getClientOriginalExtension();
@@ -43,7 +48,7 @@ class ShopItemController extends Controller
 
         $shopItem = ShopItem::create($validatedData);
         Cache::forget('shopItems');
-        return redirect()->route('shopItems.index');
+        return redirect()->route('shopItems.index')->with('message', 'Item criado com sucesso!');
     }
 
     /**

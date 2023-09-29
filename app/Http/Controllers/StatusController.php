@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+
 class StatusController extends Controller
 {
     private $host;
@@ -8,17 +10,38 @@ class StatusController extends Controller
 
     public function __construct()
     {
-        
-        $this->host = gethostbyname(env('MINECRAFT_SERVER'));
+        // $this->host = gethostbyname(env('MINECRAFT_SERVER'));
     }
 
     public function show()
     {
+        $minecraftRconController = new MinecraftRconController();
+        
+        // Execute 'list' command
+        $response = $minecraftRconController->executeInternalCommand(new Request(['command' => 'list']));
+        $responseContent = str_replace('\u0000\u0000', '', $response->getContent());
+        $responseArray = json_decode($responseContent, true);
+        preg_match('/There are (\d+) of a max of (\d+) players online: (.*)/', $responseArray['response'], $matches);
+        $jogadores = $matches[1];
+        $maxJogadores = $matches[2];
+        $online = empty($matches[3]) ? explode(', ', 'sem jogadores online') : explode(', ', $matches[3]);
+        
+        // Execute '/version' command
+        $versionResponse = $minecraftRconController->executeInternalCommand(new Request(['command' => 'version']));
+        $versionResponseContent = str_replace('\u0000\u0000', '', $versionResponse->getContent());
+        $versionResponseArray = json_decode($versionResponseContent, true);
+        preg_match('/MC: (\d+\.\d+\.\d+)/', $versionResponseArray['response'], $matches);
+        $serverVersion = $matches[1];
+        
         return response()->json([
             'javaVersion' => $this->getJavaVersion(),
             'isProgramRunning' => $this->isServiceRunning(),
-            'ipAddress' => $this->host,
-            'portStatus' => $this->getPortStatus(),
+            // 'ipAddress' => $this->host,
+            // 'portStatus' => $this->getPortStatus(),
+            'jogadores' => $jogadores,
+            'maxJogadores' => $maxJogadores,
+            'online' => $online,
+            'serverVersion' => $serverVersion
         ]);
     }
 
@@ -28,7 +51,7 @@ class StatusController extends Controller
         preg_match('/version "(.*?)"/', $output[0], $matches);
         return $matches[1] ?? 'Unknown';
     }
-
+    
     private function isServiceRunning()
     {
         $serviceName = 'Minecraft_Server';
@@ -65,4 +88,3 @@ class StatusController extends Controller
     }
 }
 ?>
-

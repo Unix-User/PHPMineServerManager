@@ -8,34 +8,43 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import axios from 'axios';
 
-const editMode = ref(false);
-const isOpen = ref(false);
-const form = reactive({
-    name: null,
-    description: null,
-    price: null,
-    item_photo_path: '/storage/shop-item-photos/default.png', // Set default image path
-});
-const imagePreview = ref(null);
-const shopItems = ref([]);
-const errors = reactive({
-    name: [],
-    description: [],
-    price: [],
+const state = reactive({
+    editMode: false,
+    isOpen: false,
+    form: {
+        title: null,
+        content: null,
+        author_id: null,
+        category_id: null,
+        published_at: null,
+        post_image_path: '/storage/post-image-photos/default.png',
+    },
+    imagePreview: null,
+    updatePosts: [],
+    errors: {
+        title: [],
+        content: [],
+        author_id: [],
+        category_id: [],
+        published_at: [],
+    },
 });
 
-const fetchShopItems = async () => {
+const { editMode, isOpen, form, imagePreview, updatePosts, errors } = toRefs(state);
+
+const fetchUpdatePosts = async () => {
     try {
-        const response = await axios.get('/shop/items');
+        const response = await axios.get('/update/posts');
+        console.log('Dados recebidos da API:', response.data); // Verifique os dados recebidos
         if (Array.isArray(response.data)) {
-            shopItems.value = response.data.map(item => {
-                if (!item.item_photo_path) {
-                    item.item_photo_path = '/storage/shop-item-photos/default.png';
+            updatePosts.value = response.data.map((post) => {
+                if (!post.post_image_path) {
+                    post.post_image_path = '/storage/post-image-photos/default.png';
                 }
-                return item;
+                return post;
             });
         } else {
-            console.error('Error: response data is not an array');
+            console.error('Erro: os dados da resposta não são um array');
         }
     } catch (error) {
         console.error(error);
@@ -44,8 +53,8 @@ const fetchShopItems = async () => {
 
 const resetForm = () => {
     for (let key in form) {
-        if (key === 'item_photo_path') {
-            form[key] = '/storage/shop-item-photos/default.png'; // Reset image path to default
+        if (key === 'post_image_path') {
+            form[key] = '/storage/post-image-photos/default.png'; // Reset image path to default
         } else {
             form[key] = null;
         }
@@ -65,9 +74,6 @@ const edit = (data) => {
     if (data) {
         editMode.value = true;
         Object.assign(form, data);
-        if (!form.item_photo_path) {
-            form.item_photo_path = '/storage/shop-item-photos/default.png'; // If no image, set to default
-        }
         toggleModal();
     }
 };
@@ -76,15 +82,15 @@ const handleRequest = async (method, url, data) => {
     try {
         const config = {
             headers: {
-                'content-type': 'multipart/form-data'
-            }
+                'content-type': 'multipart/form-data',
+            },
         };
         await axios({ method, url, data, config });
         resetForm();
         if (isOpen.value) {
             toggleModal();
         }
-        fetchShopItems();
+        await fetchUpdatePosts(); // Atualize a lista de posts após uma operação bem-sucedida.
     } catch (error) {
         if (error.response && error.response.data.errors) {
             Object.assign(errors, error.response.data.errors);
@@ -96,40 +102,32 @@ const handleRequest = async (method, url, data) => {
 
 const save = async (data) => {
     const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('description', data.description);
-    formData.append('price', data.price);
-    if (data.item_photo_path && data.item_photo_path !== '/storage/shop-item-photos/default.png') {
-        let blob = await fetch(data.item_photo_path).then(r => r.blob());
-        formData.append('item_photo_path', blob, data.item_photo_path.name);
+    formData.append('title', data.title);
+    formData.append('content', data.content);
+    formData.append('category_id', data.category_id);
+    if (data.post_image_path && data.post_image_path !== '/storage/post-image-photos/default.png') {
+        let blob = await fetch(data.post_image_path).then(r => r.blob());
+        formData.append('post_image_path', blob, data.item_photo_path.name);
     }
-    await handleRequest('post', '/shop/items', formData);
+    await handleRequest('post', '/update/posts', formData);
+    updatePosts.value.push(data);
     if (isOpen.value) {
         toggleModal();
     }
 };
 
 const update = async (data) => {
-    const formData = new FormData();
-    formData.append('_method', 'PUT');
-    formData.append('name', data.name);
-    formData.append('description', data.description);
-    formData.append('price', data.price);
-    if (data.item_photo_path && data.item_photo_path !== '/storage/shop-item-photos/default.png') {
-        let blob = await fetch(data.item_photo_path).then(r => r.blob());
-        formData.append('item_photo_path', blob, data.item_photo_path.name);
-    }
-    try {
-        await handleRequest('put', `/shop/items/${data.id}`, formData);
-        if (isOpen.value) {
-            toggleModal();
-        }
-    } catch (error) {
-        console.error(error);
+    await handleRequest('put', `/update/posts/${data.id}`, data);
+    if (isOpen.value) {
+        toggleModal();
     }
 };
 
-const deleteRow = (data) => data && confirm('Tem certeza de que deseja remover?') && handleRequest('delete', `/shop/items/${data.id}`);
+const deleteRow = async (data) => {
+    if (data && confirm('Tem certeza de que deseja remover?')) {
+        await handleRequest('delete', `/update/posts/${data.id}`);
+    }
+};
 
 const updateImagePreview = (event) => {
     const reader = new FileReader();
@@ -146,24 +144,24 @@ const selectNewImage = () => {
 };
 
 const deleteImage = () => {
-    form.item_photo_path = '/storage/shop-item-photos/default.png'; // Set image path to default when deleted
+    form.item_photo_path = '/storage/post-image-photos/default.png'; // Set image path to default when deleted
     imagePreview.value = null;
     document.getElementById('image').value = null;
 };
 
-fetchShopItems();
+fetchUpdatePosts();
 </script>
 
 <template>
-    <AppLayout title="Shop Items">
+    <AppLayout title="Posts">
         <template #header>
             <div class="flex justify-between w-full">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Shop Items
+                    Posts
                 </h2>
                 <div class="ml-auto" v-if="$page.props.user.roles.includes('admin')">
                     <PrimaryButton @click="toggleModal" class="ml-auto mr-2">
-                        Create New Shop Item
+                        Criar Novo Post
                     </PrimaryButton>
                 </div>
             </div>
@@ -173,21 +171,18 @@ fetchShopItems();
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="(row, index) in $page.props.shopItems" :key="index"
+                        <div v-for="(row, index) in $page.props.updatePosts" :key="index"
                             class="rounded-lg overflow-hidden shadow-lg p-4 bg-white">
                             <div class="px-6 py-4">
-                                <div class="font-bold text-xl mb-2 text-center">{{ row.name }}</div>
-                                <img class="w-full h-64 object-cover mt-2" :src="row.image || '/storage/shop-item-photos/default.png'"
-                                    alt="Product image">
-                                <p class="text-gray-700 text-base mt-2">{{ row.description }}</p>
+                                <div class="font-bold text-xl mb-2 text-center">{{ row.title }}</div>
+                                <img class="w-full h-64 object-cover mt-2"
+                                    :src="row.post_image_path || '/storage/post-image-photos/default.png'" alt="Post image">
+                                <p class="text-gray-700 text-base mt-2">{{ row.content }}</p>
                             </div>
                             <div class="px-6 py-4 flex justify-between items-center mt-4">
-                                <span
-                                    class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">{{
-                                        row.price }}</span>
                                 <div class="px-6 py-4 flex" v-if="$page.props.user.roles.includes('admin')">
-                                    <PrimaryButton @click="edit(row)">Edit</PrimaryButton>
-                                    <SecondaryButton @click="deleteRow(row)">Delete</SecondaryButton>
+                                    <PrimaryButton @click="edit(row)">Editar</PrimaryButton>
+                                    <SecondaryButton @click="deleteRow(row)">Deletar</SecondaryButton>
                                 </div>
                             </div>
                         </div>
@@ -197,27 +192,28 @@ fetchShopItems();
                             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div class="">
                                     <div class="mb-4">
-                                        <InputLabel for="name" value="Name" />
-                                        <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full"
-                                            autocomplete="name" />
-                                        <p class="text-red-500 text-xs italic" v-if="errors.name">{{ errors.name[0] }}</p>
+                                        <InputLabel for="title" value="Título" />
+                                        <TextInput id="title" v-model="form.title" type="text" class="mt-1 block w-full"
+                                            autocomplete="title" />
+                                        <p class="text-red-500 text-xs italic" v-if="errors.title">{{ errors.title[0] }}</p>
                                     </div>
                                     <div class="mb-4">
-                                        <InputLabel for="description" value="Description" />
-                                        <TextInput id="description" v-model="form.description" type="text"
-                                            class="mt-1 block w-full" autocomplete="description" />
-                                        <p class="text-red-500 text-xs italic" v-if="errors.description">{{
-                                            errors.description[0] }}</p>
+                                        <InputLabel for="content" value="Conteúdo" />
+                                        <TextInput id="content" v-model="form.content" type="text" class="mt-1 block w-full"
+                                            autocomplete="content" />
+                                        <p class="text-red-500 text-xs italic" v-if="errors.content">{{
+                                            errors.content[0] }}</p>
                                     </div>
                                     <div class="mb-4">
-                                        <InputLabel for="price" value="Price" />
-                                        <TextInput id="price" v-model="form.price" type="number" class="mt-1 block w-full"
-                                            autocomplete="price" />
-                                        <p class="text-red-500 text-xs italic" v-if="errors.price">{{ errors.price[0] }}</p>
+                                        <InputLabel for="category_id" value="Categoria" />
+                                        <TextInput id="category_id" v-model="form.category_id" type="text"
+                                            class="mt-1 block w-full" autocomplete="category_id" />
+                                        <p class="text-red-500 text-xs italic" v-if="errors.category_id">{{
+                                            errors.category_id[0] }}</p>
                                     </div>
                                     <div class="mb-4">
-                                        <InputLabel for="image" value="Image" />
-                                        <input id="image" type="file" class="mt-1 block w-full"
+                                        <InputLabel for="post_image_path" value="Imagem" />
+                                        <input id="post_image_path" type="file" class="mt-1 block w-full"
                                             @change="updateImagePreview($event)" />
                                         <img v-if="imagePreview" :src="imagePreview" class="mt-2" />
                                     </div>
@@ -227,16 +223,16 @@ fetchShopItems();
                                 <PrimaryButton type="button"
                                     class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green transition ease-in-out duration-150 sm:text-sm sm:leading-5"
                                     v-show="!editMode" @click="save(form)">
-                                    Save
+                                    Salvar
                                 </PrimaryButton>
                                 <PrimaryButton type="button"
                                     class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green transition ease-in-out duration-150 sm:text-sm sm:leading-5"
                                     v-show="editMode" @click="update(form)">
-                                    Update
+                                    Atualizar
                                 </PrimaryButton>
                                 <SecondaryButton @click="toggleModal" type="button"
                                     class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
-                                    Cancel
+                                    Cancelar
                                 </SecondaryButton>
                             </div>
                         </form>
@@ -246,4 +242,5 @@ fetchShopItems();
         </div>
     </AppLayout>
 </template>
+
 

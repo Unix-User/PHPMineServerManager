@@ -20,6 +20,12 @@ class MinecraftRconController extends Controller
         $this->rcon = new Rcon($host, $port, $pass, 3);
     }
 
+    public function executeInternalCommand(Request $request)
+    {
+        $validatedData = $this->validateRequest($request);
+        return $this->sendCommandToServer($validatedData['command']);
+    }
+
     public function executeCommand(Request $request)
     {
         return $this->handleCommand($request);
