@@ -1,12 +1,8 @@
-<p align="center"><a href="https://udianix.com.br" target="_blank"><img src="https://github.com/Unix-User/PhPMineServerManager/assets/38821945/9d1f7264-9ccd-4369-ba37-5bc409a22caf" />
+<p align="center"><a href="https://minecraft.udianix.com.br" target="_blank"><img src="https://github.com/Unix-User/PhPMineServerManager/assets/38821945/9d1f7264-9ccd-4369-ba37-5bc409a22caf" />
 </a></p>
 
 <p align="center">
-<a href="https://github.com/Unix-User/PhPMineServerManager/actions"><img src="https://img.shields.io/github/workflow/status/Unix-User/PhPMineServerManager/tests" alt="Build Status"></a>
-<a href="https://github.com/Unix-User/PhPMineServerManager"><img src="https://img.shields.io/github/downloads/Unix-User/PhPMineServerManager/total" alt="Total Downloads"></a>
-<a href="https://github.com/Unix-User/PhPMineServerManager/releases"><img src="https://img.shields.io/github/v/release/Unix-User/PhPMineServerManager" alt="Latest Stable Version"></a>
-<a href="https://github.com/Unix-User/PhPMineServerManager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Unix-User/PhPMineServerManager" alt="License"></a>
-
+    Uma demonstração desse projeto esta disponivel <a href="https://minecraft.udianix.com.br/" target="_blank">aqui</a>
 </p>
 
 ## Sobre o Projeto
