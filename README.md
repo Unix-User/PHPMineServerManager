@@ -1,4 +1,4 @@
-<p align="center"><a href="https://minecraft.udianix.com.br" target="_blank"><img src="https://github.com/Unix-User/PhPMineServerManager/assets/38821945/9d1f7264-9ccd-4369-ba37-5bc409a22caf" />
+<p align="center"><a href="https://minecraft.udianix.com.br" target="_blank"><img src="https://github.com/Unix-User/PHPMineServerManager/assets/38821945/b2298d64-d45a-4f33-9c96-83b9ef1f86fb" />
 </a></p>
 
 <p align="center">
