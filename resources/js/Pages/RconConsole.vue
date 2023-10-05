@@ -4,79 +4,84 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import axios from 'axios';
 
 export default {
+    
     components: {
         AppLayout,
     },
-    setup() {
+    props: {
+        username: {
+            type: String,
+            required: true
+        }
+    },
+    setup(props) {
         const command = ref('');
         const messages = ref([]);
 
         const connectRcon = async () => {
             try {
                 const response = await axios.post('/execute-command', {
-                    command: 'connect',
+                    command: `say @a[team=op] Usuário ${ props.username } se conectou ao servidor RCON no console do site.`,
                 });
-                if (response.status !== 200) {
-                    throw new Error(`Server responded with status code: ${response.status}`);
-                }
-            } catch (error) {
+            if (response.status !== 200) {
+                throw new Error(`Server responded with status code: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`AxiosError: ${error.message}`);
+        }
+    };
+
+    const disconnectRcon = async () => {
+        try {
+            await axios.post('/close-connection');
+        } catch (error) {
+            console.error(`AxiosError: ${error.message}`);
+        }
+    };
+
+    const sendCommand = async () => {
+        try {
+            const response = await axios.post('/execute-command', {
+                command: command.value.trim(), // Clean input on send command
+            });
+            if (response.data) {
+                const message = response.data.response || 'No response from the server';
+                const sanitizedMessage = message.replace(/\u00A7[0-9A-FK-ORa-fk-or]/g, ''); // Convert Minecraft color codes but keep line breaks
+                messages.value.push(sanitizedMessage)
+                console.log('Server response:', sanitizedMessage);
+
+            } else {
+
+                console.error('Invalid response from the server');
+            }
+
+
+
+        } catch (error) {
+            if (error.response && error.response.status === 500) {
+                console.error('Server error: ' + error.response.data.message);
+            } else {
                 console.error(`AxiosError: ${error.message}`);
             }
-        };
+        }
+        command.value = ''; // Clear the command input after sending
+    };
 
-        const disconnectRcon = async () => {
-            try {
-                await axios.post('/close-connection', {
-                    command: 'disconnect',
-                });
-            } catch (error) {
-                console.error(`AxiosError: ${error.message}`);
-            }
-        };
+    const clearLog = () => {
+        command.value = '';
+        messages.value = [];
+    };
 
-        const sendCommand = async () => {
-            try {
-                const response = await axios.post('/execute-command', {
-                    command: command.value.trim(), // Clean input on send command
-                });
-                if (response.data) {
-                    const message = response.data.response || 'No response from the server';
-                    const sanitizedMessage = message.replace(/\u00A7[0-9A-FK-ORa-fk-or]/g, ''); // Convert Minecraft color codes but keep line breaks
-                    messages.value.push(sanitizedMessage)
-                    console.log('Server response:', sanitizedMessage);
-
-                } else {
-
-                    console.error('Invalid response from the server');
-                }
-
-
-
-            } catch (error) {
-                if (error.response && error.response.status === 500) {
-                    console.error('Server error: ' + error.response.data.message);
-                } else {
-                    console.error(`AxiosError: ${error.message}`);
-                }
-            }
-            command.value = ''; // Clear the command input after sending
-        };
-
-        const clearLog = () => {
-            command.value = '';
-            messages.value = [];
-        };
-
-        onMounted(connectRcon);
+    onMounted(connectRcon);
         onUnmounted(disconnectRcon);
 
         return {
-            command,
-            messages,
-            sendCommand,
-            clearLog,
-        };
-    },
+        command,
+        messages,
+        sendCommand,
+        clearLog,
+    };
+},
 };
 </script>
 

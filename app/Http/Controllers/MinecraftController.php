@@ -8,6 +8,14 @@ use Inertia\Inertia;
 
 class MinecraftController extends Controller
 {
+    public function currencies()
+    {
+        $markdownFilePath = storage_path('..\resources\markdown\currencies.md');
+        $currencies = file_get_contents($markdownFilePath);
+        $parsedCurrencies = Markdown::parse($currencies)->toHtml(); // Change this line
+        return Inertia::render('Currencies', ['currencies' => $parsedCurrencies]);
+    }
+
     public function factionCommands()
     {
         $markdownFilePath = storage_path('..\resources\markdown\medieval-factions.md');

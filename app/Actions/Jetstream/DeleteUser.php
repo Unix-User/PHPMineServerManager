@@ -30,11 +30,12 @@ class DeleteUser implements DeletesUsers
      */
     public function delete(User $user): void
     {
-        if(request()->isMethod('delete')) {
+        if (request()->isMethod('delete')) {
             DB::transaction(function () use ($user) {
                 $this->deleteTeams($user);
                 $user->deleteProfilePhoto();
                 $user->tokens->each->delete();
+                DB::table('model_has_roles')->where('model_id',$user->id)->delete();
                 $user->delete();
             });
         } else {
@@ -54,4 +55,3 @@ class DeleteUser implements DeletesUsers
         });
     }
 }
-

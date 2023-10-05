@@ -1,7 +1,7 @@
 <style>
-    ::-webkit-scrollbar {
-        display: none;
-    }
+::-webkit-scrollbar {
+    display: none;
+}
 </style>
 <script setup>
 import { ref } from 'vue';
@@ -36,11 +36,9 @@ const logout = () => {
     <div>
 
         <Head :title="title" />
-
         <Banner />
-
-        <div class="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed" 
-        style="background-image: url('/storage/background.png');">
+        <div class="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+            style="background-image: url('/storage/background.png');">
             <nav class="bg-white border-b border-gray-100">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,6 +66,11 @@ const logout = () => {
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <NavLink :href="route('map')" :active="route().current('map')">
                                     Mapa
+                                </NavLink>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                                <NavLink href="help" :active="route().current('help')">
+                                    Tutoriais
                                 </NavLink>
                             </div>
                             <!--
@@ -134,7 +137,8 @@ const logout = () => {
                                                         Switch Teams
                                                     </div>
 
-                                                    <template v-for="team in $page.props.auth.user.all_teams"
+                                                    <template
+                                                        v-for="      team       in       $page.props.auth.user.all_teams      "
                                                         :key="team.id">
                                                         <form @submit.prevent="switchToTeam(team)">
                                                             <DropdownLink as="button">
@@ -253,6 +257,12 @@ const logout = () => {
                         </ResponsiveNavLink>
                     </div>
                     <div class="pt-2 pb-3 space-y-1">
+                        <ResponsiveNavLink href="help" :active="route().current('help')">
+                            Tutoriais
+                        </ResponsiveNavLink>
+                    </div>
+                    <!--
+                    <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('factions')" :active="route().current('factions')">
                             Facções
                         </ResponsiveNavLink>
@@ -262,7 +272,7 @@ const logout = () => {
                             Atualizações
                         </ResponsiveNavLink>
                     </div>
-                    <!-- <div class="pt-2 pb-3 space-y-1">
+                    <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('shop.items')" :active="route().current('shop.items')">
                             Items
                         </ResponsiveNavLink>
@@ -291,8 +301,8 @@ const logout = () => {
                                 Profile
                             </ResponsiveNavLink>
 
-                            <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')"
-                                :active="route().current('api-tokens.index')">
+                            <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures"
+                                :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
                                 API Tokens
                             </ResponsiveNavLink>
 
@@ -317,8 +327,8 @@ const logout = () => {
                                     Team Settings
                                 </ResponsiveNavLink>
 
-                                <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')"
-                                    :active="route().current('teams.create')">
+                                <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams"
+                                    :href="route('teams.create')" :active="route().current('teams.create')">
                                     Create New Team
                                 </ResponsiveNavLink>
 
@@ -330,7 +340,8 @@ const logout = () => {
                                         Switch Teams
                                     </div>
 
-                                    <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">
+                                    <template v-for="      team       in       $page.props.auth.user.all_teams      "
+                                        :key="team.id">
                                         <form @submit.prevent="switchToTeam(team)">
                                             <ResponsiveNavLink as="button">
                                                 <div class="flex items-center">

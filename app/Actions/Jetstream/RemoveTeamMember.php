@@ -5,10 +5,12 @@ namespace App\Actions\Jetstream;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Contracts\RemovesTeamMembers;
 use Laravel\Jetstream\Events\TeamMemberRemoved;
+use Laravel\Jetstream\Jetstream;
 
 class RemoveTeamMember implements RemovesTeamMembers
 {
@@ -22,6 +24,9 @@ class RemoveTeamMember implements RemovesTeamMembers
         $this->ensureUserDoesNotOwnTeam($teamMember, $team);
 
         $team->removeUser($teamMember);
+        $findTeamMember = Jetstream::findUserByIdOrFail($teamMember->id);
+        DB::table('model_has_roles')->where('model_id',$teamMember->id)->delete();
+        $findTeamMember->assignRole('standard');
 
         TeamMemberRemoved::dispatch($team, $teamMember);
     }
@@ -31,8 +36,10 @@ class RemoveTeamMember implements RemovesTeamMembers
      */
     protected function authorize(User $user, Team $team, User $teamMember): void
     {
-        if (! Gate::forUser($user)->check('removeTeamMember', $team) &&
-            $user->id !== $teamMember->id) {
+        if (
+            !Gate::forUser($user)->check('removeTeamMember', $team) &&
+            $user->id !== $teamMember->id
+        ) {
             throw new AuthorizationException;
         }
     }

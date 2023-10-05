@@ -13,16 +13,10 @@ class AdminUserSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Admin',
-                'email' => 'admin@admin.com',
-                'password' => 'SecurePassword',
-                'role' => 'admin'
-            ],
-            [
-                'name' => 'Weverton',
-                'email' => 'wevertonslima@gmail.com',
-                'password' => 'Dracar2s',
-                'role' => 'admin'
+                'name' => env('ADMIN_NAME', 'Admin'),
+                'email' => env('ADMIN_EMAIL', 'admin@admin.com'),
+                'password' => env('ADMIN_PASSWORD', 'SecurePassword'),
+                'role' => env('admin')
             ]
         ];
         foreach ($users as $user) {

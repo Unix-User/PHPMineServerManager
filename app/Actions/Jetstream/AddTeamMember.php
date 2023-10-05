@@ -5,6 +5,7 @@ namespace App\Actions\Jetstream;
 use App\Models\Team;
 use App\Models\User;
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Jetstream\Contracts\AddsTeamMembers;
@@ -27,10 +28,12 @@ class AddTeamMember implements AddsTeamMembers
         $newTeamMember = Jetstream::findUserByEmailOrFail($email);
 
         AddingTeamMember::dispatch($team, $newTeamMember);
-
+        DB::table('model_has_roles')->where('model_id',$newTeamMember->id)->delete();
         $team->users()->attach(
-            $newTeamMember, ['role' => $role]
+            $newTeamMember->assignRole($role),
+            ['role' => $role]
         );
+        // $team->users();
 
         TeamMemberAdded::dispatch($team, $newTeamMember);
     }
@@ -46,8 +49,8 @@ class AddTeamMember implements AddsTeamMembers
         ], $this->rules(), [
             'email.exists' => __('We were unable to find a registered user with this email address.'),
         ])->after(
-            $this->ensureUserIsNotAlreadyOnTeam($team, $email)
-        )->validateWithBag('addTeamMember');
+                $this->ensureUserIsNotAlreadyOnTeam($team, $email)
+            )->validateWithBag('addTeamMember');
     }
 
     /**
@@ -60,8 +63,8 @@ class AddTeamMember implements AddsTeamMembers
         return array_filter([
             'email' => ['required', 'email', 'exists:users'],
             'role' => Jetstream::hasRoles()
-                            ? ['required', 'string', new Role]
-                            : null,
+                ? ['required', 'string', new Role]
+                : null,
         ]);
     }
 

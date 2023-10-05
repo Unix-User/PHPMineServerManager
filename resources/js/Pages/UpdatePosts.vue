@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, toRefs } from 'vue';
+import { ref, reactive, toRefs, watchEffect } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import Modal from '@/Components/Modal.vue';
@@ -33,123 +33,75 @@ const state = reactive({
 const { editMode, isOpen, form, imagePreview, updatePosts, errors } = toRefs(state);
 
 const fetchUpdatePosts = async () => {
-    try {
-        const response = await axios.get('/update/posts');
-        console.log('Dados recebidos da API:', response.data); // Verifique os dados recebidos
-        if (Array.isArray(response.data)) {
-            updatePosts.value = response.data.map((post) => {
-                if (!post.post_image_path) {
-                    post.post_image_path = '/storage/post-image-photos/default.png';
-                }
-                return post;
-            });
-        } else {
-            console.error('Erro: os dados da resposta não são um array');
-        }
-    } catch (error) {
-        console.error(error);
+    const response = await axios.get('/update/posts', { params: { t: Date.now() } });
+    if (Array.isArray(response.data)) {
+        updatePosts.value = response.data.map((post) => {
+            post.post_image_path = post.post_image_path || '/storage/post-image-photos/default.png';
+            return post;
+        });
     }
 };
 
+watchEffect(fetchUpdatePosts);
+
 const resetForm = () => {
-    for (let key in form) {
-        if (key === 'post_image_path') {
-            form[key] = '/storage/post-image-photos/default.png'; // Reset image path to default
-        } else {
-            form[key] = null;
-        }
-    }
+    Object.keys(form).forEach(key => form[key] = key === 'post_image_path' ? '/storage/post-image-photos/default.png' : null);
     imagePreview.value = null;
 };
 
 const toggleModal = () => {
     isOpen.value = !isOpen.value;
-    if (!isOpen.value) {
-        resetForm();
-        editMode.value = false;
-    }
+    if (!isOpen.value) resetForm(), editMode.value = false;
 };
 
 const edit = (data) => {
-    if (data) {
-        editMode.value = true;
-        Object.assign(form, data);
-        toggleModal();
-    }
+    if (data) editMode.value = true, Object.assign(form, data), toggleModal();
 };
 
 const handleRequest = async (method, url, data) => {
-    try {
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data',
-            },
-        };
-        await axios({ method, url, data, config });
-        resetForm();
-        if (isOpen.value) {
-            toggleModal();
-        }
-        await fetchUpdatePosts(); // Atualize a lista de posts após uma operação bem-sucedida.
-    } catch (error) {
-        if (error.response && error.response.data.errors) {
-            Object.assign(errors, error.response.data.errors);
-        } else {
-            console.error(error);
-        }
-    }
+    await axios({ method, url, data, headers: { 'content-type': 'multipart/form-data' } });
+    resetForm();
+    if (isOpen.value) toggleModal();
+    await fetchUpdatePosts();
 };
 
 const save = async (data) => {
     const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('content', data.content);
-    formData.append('category_id', data.category_id);
+    Object.keys(data).forEach(key => formData.append(key, data[key]));
     if (data.post_image_path && data.post_image_path !== '/storage/post-image-photos/default.png') {
         let blob = await fetch(data.post_image_path).then(r => r.blob());
         formData.append('post_image_path', blob, data.item_photo_path.name);
     }
     await handleRequest('post', '/update/posts', formData);
-    updatePosts.value.push(data);
-    if (isOpen.value) {
-        toggleModal();
-    }
+    if (isOpen.value) toggleModal();
 };
 
 const update = async (data) => {
     await handleRequest('put', `/update/posts/${data.id}`, data);
-    if (isOpen.value) {
-        toggleModal();
-    }
+    if (isOpen.value) toggleModal();
 };
 
 const deleteRow = async (data) => {
     if (data && confirm('Tem certeza de que deseja remover?')) {
         await handleRequest('delete', `/update/posts/${data.id}`);
+        await fetchUpdatePosts();
     }
 };
 
 const updateImagePreview = (event) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-        imagePreview.value = e.target.result;
-        form.item_photo_path = e.target.result;
-    };
+    reader.onload = (e) => imagePreview.value = form.item_photo_path = e.target.result;
     reader.readAsDataURL(event.target.files[0]);
 };
 
-const selectNewImage = () => {
-    imagePreview.value = null;
-    document.getElementById('image').click();
-};
+const selectNewImage = () => document.getElementById('image').click();
 
 const deleteImage = () => {
-    form.item_photo_path = '/storage/post-image-photos/default.png'; // Set image path to default when deleted
+    form.item_photo_path = '/storage/post-image-photos/default.png';
     imagePreview.value = null;
     document.getElementById('image').value = null;
 };
 
-fetchUpdatePosts();
 </script>
 
 <template>
@@ -171,7 +123,7 @@ fetchUpdatePosts();
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="(row, index) in $page.props.updatePosts" :key="index"
+                        <div v-for="(row, index) in updatePosts" :key="index"
                             class="rounded-lg overflow-hidden shadow-lg p-4 bg-white">
                             <div class="px-6 py-4">
                                 <div class="font-bold text-xl mb-2 text-center">{{ row.title }}</div>
@@ -242,5 +194,3 @@ fetchUpdatePosts();
         </div>
     </AppLayout>
 </template>
-
-

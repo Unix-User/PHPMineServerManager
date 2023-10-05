@@ -18,6 +18,7 @@ class RolesSeeder extends Seeder
 
 
         $role_admin = Role::create(['name' => 'admin']);
+        $role_editor = Role::create(['name' => 'editor']);
         $role_standard = Role::create(['name' => 'standard']);
 
         $permission_read = Permission::create(['name' => 'read articles']);
@@ -26,9 +27,11 @@ class RolesSeeder extends Seeder
         $permission_delete = Permission::create(['name' => 'delete articles']);
 
         $permission_admin = [$permission_read, $permission_edit, $permission_write, $permission_delete];
+        $permission_editor = [$permission_read, $permission_edit, $permission_write];
 
 
         $role_admin->syncPermissions($permission_admin);
+        $role_editor->syncPermissions($permission_editor);
         $role_standard->givePermissionTo($permission_read);
     }
 }

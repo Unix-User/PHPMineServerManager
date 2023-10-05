@@ -9,6 +9,7 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Actions\Jetstream\InviteTeamMember;
 use App\Actions\Jetstream\RemoveTeamMember;
 use App\Actions\Jetstream\UpdateTeamName;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Jetstream;
 
@@ -50,12 +51,16 @@ class JetstreamServiceProvider extends ServiceProvider
             'read',
             'update',
             'delete',
-        ])->description('Administrator users can perform any action.');
+        ])->description('Os usuários administradores podem realizar qualquer ação.');
 
         Jetstream::role('editor', 'Editor', [
             'read',
             'create',
             'update',
-        ])->description('Editor users have the ability to read, create, and update.');
+        ])->description('Os usuários do editor têm a capacidade de ler, criar e atualizar.');
+
+        Jetstream::role('standard', 'Padrão', [
+            'read',
+        ])->description('Os usuários padrão têm a capacidade de ler.');
     }
 }
