@@ -21,11 +21,11 @@ class StatusController extends Controller
         $response = $minecraftRconController->executeInternalCommand(new Request(['command' => 'list']));
         $responseContent = str_replace('\u0000\u0000', '', $response->getContent());
         $responseArray = json_decode($responseContent, true);
-        preg_match('/There are (\d+) of a max of (\d+) players online: (.*)/', $responseArray['response'], $matches);
-        $jogadores = $matches[1];
-        $maxJogadores = $matches[2];
-        $online = empty($matches[3]) ? explode(', ', 'sem jogadores online') : explode(', ', $matches[3]);
-        
+        $responseContent = preg_replace('/§./', '', $responseArray['response']);
+        preg_match('/Há (\d+) de no máximo (\d+) jogadores online./', $responseContent, $matches);
+        $jogadores = $matches[1] ?? '0';
+        $maxJogadores = $matches[2] ?? '20';
+        $online = explode("\n", trim(str_replace($matches[0], '', $responseContent)));
         // Execute '/version' command
         $versionResponse = $minecraftRconController->executeInternalCommand(new Request(['command' => 'version']));
         $versionResponseContent = str_replace('\u0000\u0000', '', $versionResponse->getContent());
@@ -34,6 +34,8 @@ class StatusController extends Controller
         $serverVersion = $matches[1];
         
         return response()->json([
+            'response' => $responseArray,
+            'responseclean' => $responseContent, 
             'javaVersion' => $this->getJavaVersion(),
             'isProgramRunning' => $this->isServiceRunning(),
             // 'ipAddress' => $this->host,

@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('minecraft:poi-update')->hourly();
         $schedule->command('minecraft:map-update')->daily();
-        $schedule->command('minecraft:send-rcon-command')->everyMinute();
+        // $schedule->command('minecraft:send-rcon-command')->everyMinute();
     }
 
     /**

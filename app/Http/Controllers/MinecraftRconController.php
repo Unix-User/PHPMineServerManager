@@ -67,7 +67,9 @@ class MinecraftRconController extends Controller
         if ($response === false) {
             return response()->json(['response' => 'Command execution failed'], 500);
         }
-        Log::channel('single')->info('Command response: ' . $response);
+        // Clean up special characters from the Minecraft RCON server response
+        $cleanResponse = preg_replace('/§./', '', $response);
+        Log::channel('single')->info('Command response: ' . $cleanResponse);
         return response()->json(['response' => $response]);
     }
 
