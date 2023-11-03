@@ -21,7 +21,7 @@ export default {
         const connectRcon = async () => {
             try {
                 const response = await axios.post('/execute-command', {
-                    command: `say @a[team=op] Usuário ${ props.username } se conectou ao servidor RCON no console do site.`,
+                    command: `execute as @a[distance=..-1] run say Usuário ${ props.username } se conectou ao servidor RCON no console do site.`,
                 });
             if (response.status !== 200) {
                 throw new Error(`Server responded with status code: ${response.status}`);

@@ -149,6 +149,16 @@ axios
                 </div>
             </a>
         </div>
+        <!-- <div class="grid grid-cols-1 gap-6 lg:gap-8 mt-6">
+            <iframe
+                src="https://discord.com/widget?id=996572240986509342&theme=light"
+                width="50%"
+                height="350"
+                allowtransparency="true"
+                frameborder="0"
+                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+            ></iframe>
+        </div> -->
     </div>
 </template>
 
