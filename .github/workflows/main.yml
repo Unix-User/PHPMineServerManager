@@ -3,15 +3,15 @@ on:
     branches:
       - main
 jobs:
-  publish-tweet:
+  publish-pilet:
     name: Send Tweet
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-16.04]
     steps:
-      - name: Tweet
-        uses: smapiot/send-tweet-v2-action@v2
-        with:
-          status: ${{ github.event.head_commit.message }}
-          consumer-key: ${{ secrets.CONSUMER_KEY }}
-          consumer-secret: ${{ secrets.CONSUMER_SECRET }}
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          access-token-secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
+    - name: Tweet
+      uses: smapiot/send-tweet-v2-action@v2
+      with:
+        status: ${{ github.event.head_commit.message }}
+        consumer-key: ${{ secrets.CONSUMER_KEY }}
+        consumer-secret: ${{ secrets.CONSUMER_SECRET }}
+        access-token: ${{ secrets.ACCESS_TOKEN }}
+        access-token-secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
