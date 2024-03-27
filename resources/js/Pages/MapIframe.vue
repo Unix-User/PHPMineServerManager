@@ -56,8 +56,8 @@ export default {
         PrimaryButton
     },
     setup() {
-        const iframeSrc = ref('https://minecraft.udianix.com.br/dynmap/');
-        const overviewerSrc = ref('https://overviewer.udianix.com.br/lobby/#/-433/64/160/-2/survival/daytime');
+        const iframeSrc = ref('https://minecraft.udianix.com.br/dynmap/factions');
+        const overviewerSrc = ref('https://minecraft.udianix.com.br/dynmap/skyblock');
         fetchBusyStatus();
         return {
             isLoading,
@@ -86,7 +86,7 @@ export default {
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <div class="container mx-auto" id="content">
                         <div id="mapRow">
-                            <a href="https://minecraft.udianix.com.br/dynmap/" target="_blank"
+                            <a href="https://minecraft.udianix.com.br/dynmap/factions" target="_blank"
                                 aria-label="Abrir mapa dinâmico em nova aba" title="Abrir mapa dinâmico em nova aba">
                                 <div class="bg-white rounded shadow-sm p-4 m-4" id="mapContent">
                                     <div class="flex justify-between items-center">
@@ -114,7 +114,7 @@ export default {
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <div class="container mx-auto" id="content">
                         <div id="mapRow">
-                            <a href="https://overviewer.udianix.com.br/lobby/#/-433/64/160/-2/survival/daytime"
+                            <a href="https://minecraft.udianix.com.br/dynmap/skyblock"
                                 target="_blank" aria-label="Abrir mapa dinâmico em nova aba"
                                 title="Abrir mapa dinâmico em nova aba">
                                 <div class="bg-white rounded shadow-sm p-4 m-4" id="mapContent">
