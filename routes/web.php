@@ -10,8 +10,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Socialite\Facades\Socialite;
-use App\Models\User;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\JsonApiReloadedController;
@@ -35,6 +33,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// discord invite
+Route::get('invite', fn () => redirect(env('DISCORD_INVITE_URL')))->name('invite');
 
 // other
 Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
@@ -68,9 +69,9 @@ Route::get('auth/facebook/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'facebook');
 })->name('facebook.callback');
 
-// Discord social login
-Route::get('auth/discord', [LoginController::class, 'redirectToDiscord'])->name('discord');
-// Route::get('auth/discord/callback', [LoginController::class, 'handleDiscordCallback'])->name('discord.callback');
+Route::get('auth/discord', function () use ($loginController) {
+    return $loginController->redirectToProvider(request(), 'discord');
+})->name('discord');
 Route::get('auth/discord/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'discord');
 })->name('discord.callback');
@@ -86,7 +87,7 @@ Route::middleware([
     Route::get('/backups', fn () => Inertia::render('Backups'))->name('backups');
     Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
     Route::get('/help', fn () => Inertia::render('Help'));
-
+    
     // shop
     Route::resource('shop/items', ShopItemController::class)->names([
         'index' => 'shop.items',
@@ -113,9 +114,6 @@ Route::middleware([
             abort(403, 'Unauthorized');
         }
     })->name('rcon');
-
-
-
 
     Route::post('/execute-command', [MinecraftRconController::class, 'executeCommand'])->name('execute-command');
     Route::post('/close-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('close-connection');
