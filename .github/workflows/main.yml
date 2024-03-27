@@ -7,7 +7,7 @@ jobs:
       - name: Get short commit message
         id: short_commit_message
         run: |
-          echo "SHORT_MESSAGE=$(echo '${{ github.event.head_commit.message }}' | cut -c 1-50 | sed 's/[.;/#]//g')" >> $GITHUB_ENV
+          echo "SHORT_MESSAGE=$(echo '${{ github.event.head_commit.message }}' | tr -d '\n' | cut -c 1-50 | sed 's/[;&\`'\'']/ /g')" >> $GITHUB_ENV
       - uses: noweh/post-tweet-v2-action@v1.0
         with:
           message: |
