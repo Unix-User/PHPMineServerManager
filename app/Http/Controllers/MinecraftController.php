@@ -10,7 +10,7 @@ class MinecraftController extends Controller
 {
     public function currencies()
     {
-        $markdownFilePath = storage_path('..\resources\markdown\currencies.md');
+        $markdownFilePath = storage_path('../resources/markdown/currencies.md');
         $currencies = file_get_contents($markdownFilePath);
         $parsedCurrencies = Markdown::parse($currencies)->toHtml(); // Change this line
         return Inertia::render('Currencies', ['currencies' => $parsedCurrencies]);
@@ -18,7 +18,7 @@ class MinecraftController extends Controller
 
     public function factionCommands()
     {
-        $markdownFilePath = storage_path('..\resources\markdown\medieval-factions.md');
+        $markdownFilePath = storage_path('../resources/markdown/medieval-factions.md');
         $factionCommands = file_get_contents($markdownFilePath);
         $parsedFactionCommands = Markdown::parse($factionCommands)->toHtml(); // Change this line
         return Inertia::render('FactionCommands', ['factionCommands' => $parsedFactionCommands]);
@@ -26,7 +26,7 @@ class MinecraftController extends Controller
 
     public function serverRules()
     {
-        $markdownFilePath = storage_path('..\resources\markdown\rules.md');
+        $markdownFilePath = storage_path('../resources/markdown/rules.md');
         $rules = file_get_contents($markdownFilePath);
         $parsedRules = Markdown::parse($rules)->toHtml(); // Change this line
         return Inertia::render('Rules', ['rules' => $parsedRules]);
@@ -34,7 +34,7 @@ class MinecraftController extends Controller
 
     public function donations()
     {
-        $markdownFilePath = storage_path('..\resources\markdown\donations.md');
+        $markdownFilePath = storage_path('../resources/markdown/donations.md');
         $rules = file_get_contents($markdownFilePath);
         $parsedMD = Markdown::parse($rules)->toHtml(); // Change this line
         return Inertia::render('Donations', ['donations' => $parsedMD]);
