@@ -11,7 +11,7 @@ jobs:
       uses: smapiot/send-tweet-v2-action@main
       with:
         status: ${{ github.event.head_commit.message }}
-        consumer-key: ${{ secrets.CONSUMER_KEY }}
+        consumer-key: '${{ secrets.CONSUMER_KEY }}'
         consumer-secret: ${{ secrets.CONSUMER_SECRET }}
         access-token: ${{ secrets.ACCESS_TOKEN }}
         access-token-secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
