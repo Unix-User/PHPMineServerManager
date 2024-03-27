@@ -4,7 +4,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: nearform-actions/github-action-notify-twitter@master
+      - uses: noweh/post-tweet-v2-action@v1.0
         with:
           message: |
             ${{ github.event.head_commit.message }}
