@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\AssinaturaVipController;
 use App\Http\Controllers\MinecraftController;
 use App\Http\Controllers\MinecraftRconController;
 use App\Http\Controllers\ShopItemController;
@@ -11,6 +13,8 @@ use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DiscordController;
+use App\Http\Controllers\JsonApiReloadedController;
 
 /*
 --------------------------------------------------------------------------
@@ -64,16 +68,24 @@ Route::get('auth/facebook/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'facebook');
 })->name('facebook.callback');
 
+// Discord social login
+Route::get('auth/discord', [LoginController::class, 'redirectToDiscord'])->name('discord');
+// Route::get('auth/discord/callback', [LoginController::class, 'handleDiscordCallback'])->name('discord.callback');
+Route::get('auth/discord/callback', function () use ($loginController) {
+    return $loginController->handleProviderCallback(request(), 'discord');
+})->name('discord.callback');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
     // pages
-    Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('dashboard');
-    Route::get('/map', fn() => Inertia::render('MapIframe'))->name('map');
-    Route::get('/factions', fn() => Inertia::render('Factions'))->name('factions');
-    Route::get('/help', fn() => Inertia::render('Help'));
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+    Route::get('/map', fn () => Inertia::render('MapIframe'))->name('map');
+    Route::get('/backups', fn () => Inertia::render('Backups'))->name('backups');
+    Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
+    Route::get('/help', fn () => Inertia::render('Help'));
 
     // shop
     Route::resource('shop/items', ShopItemController::class)->names([
@@ -102,6 +114,9 @@ Route::middleware([
         }
     })->name('rcon');
 
+
+
+
     Route::post('/execute-command', [MinecraftRconController::class, 'executeCommand'])->name('execute-command');
     Route::post('/close-connection', [MinecraftRconController::class, 'closeRconConnection'])->name('close-connection');
 
@@ -110,4 +125,33 @@ Route::middleware([
 
     Route::get('status', [StatusController::class, 'show'])->name('status');
     Route::get('busy', [StatusController::class, 'overviewerIsRunning'])->name('busy');
+
+
+    Route::prefix('discord')->group(function () {
+        Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
+        Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
+        Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
+        Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
+        Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
+        Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
+        Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
+        Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
+    });
+
+    Route::resource('assinatura/vip', AssinaturaVipController::class)->names([
+        'index' => 'assinatura.vip',
+        'store' => 'assinatura.vip.store',
+        'show' => 'assinatura.vip.show',
+        'update' => 'assinatura.vip.update',
+        'destroy' => 'assinatura.vip.delete',
+    ]);
+
+    Route::prefix('api')->group(function () {
+        Route::get('/get-latest-chats', [JsonApiReloadedController::class, 'getLatestChatsWithLimit'])->name('api.get-latest-chats');
+        Route::post('/execute-command', [JsonApiReloadedController::class, 'runCommand'])->name('api.execute-command');
+        Route::get('/check-connection', [JsonApiReloadedController::class, 'verifyApiStatus'])->name('api.check-connection');
+        Route::post('/teleport-player', [JsonApiReloadedController::class, 'teleportPlayer'])->name('api.teleport-player');
+        Route::post('/give-player-item', [JsonApiReloadedController::class, 'givePlayerItem'])->name('api.give-player-item');
+        Route::post('/set-world-time', [JsonApiReloadedController::class, 'setWorldTime'])->name('api.set-world-time');
+    });
 });

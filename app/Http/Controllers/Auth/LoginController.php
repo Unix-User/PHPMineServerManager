@@ -12,7 +12,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
 {
-    private $providers = ['github', 'google', 'facebook'];
+    private $providers = ['github', 'google', 'facebook', 'discord'];
 
     public function redirectToProvider(Request $request, $provider)
     {
@@ -33,6 +33,11 @@ class LoginController extends Controller
         $this->handleUser($user);
 
         return redirect('/dashboard');
+    }
+
+    public function redirectToDiscord()
+    {
+        return Socialite::driver('discord')->redirect();
     }
 
     private function handleUser($user)
