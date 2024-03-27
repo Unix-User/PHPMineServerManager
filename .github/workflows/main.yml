@@ -7,7 +7,7 @@ jobs:
       - uses: noweh/post-tweet-v2-action@v1.0
         with:
           message: |
-            Ei, pessoal! 🎉 Confiram o que acabamos de atualizar no projeto:
+            Ei, pessoal! Confiram o que acabei de atualizar nesse projeto:
             Mensagem do Commit: ${{ github.event.head_commit.message }}
             URL do Projeto: ${{ github.event.repository.html_url }}
             Horário do Commit: ${{ github.event.head_commit.timestamp }}
