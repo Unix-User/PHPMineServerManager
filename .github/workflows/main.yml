@@ -7,7 +7,11 @@ jobs:
       - uses: noweh/post-tweet-v2-action@v1.0
         with:
           message: |
-            ${{ github.event.head_commit.message }}
+            Ei, pessoal! 🎉 Confiram o que acabamos de atualizar no projeto:
+            Mensagem do Commit: ${{ github.event.head_commit.message }}
+            URL do Projeto: ${{ github.event.repository.html_url }}
+            Horário do Commit: ${{ github.event.head_commit.timestamp }}
+            Vem ver! #${{ join(github.event.repository.topics, ' #') }}
           consumer-key: ${{ secrets.CONSUMER_KEY }}
           consumer-secret: ${{ secrets.CONSUMER_SECRET }}
           access-token: ${{ secrets.ACCESS_TOKEN }}
