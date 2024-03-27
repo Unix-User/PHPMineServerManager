@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: noweh/post-tweet-v2-action@v1.0
         with:
-          status: ${{ github.event.head_commit.message }}
+          message: ${{ github.event.head_commit.message }}
           consumer-key: ${{ secrets.CONSUMER_KEY }}
           consumer-secret: ${{ secrets.CONSUMER_SECRET }}
           access-token: ${{ secrets.ACCESS_TOKEN }}
