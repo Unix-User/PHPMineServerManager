@@ -59,6 +59,7 @@ const edit = (data) => {
 };
 
 const handleRequest = async (method, url, data) => {
+    
     await axios({ method, url, data, headers: { 'content-type': 'multipart/form-data' } });
     resetForm();
     if (isOpen.value) toggleModal();
@@ -72,6 +73,7 @@ const save = async (data) => {
         let blob = await fetch(data.post_image_path).then(r => r.blob());
         formData.append('post_image_path', blob, data.item_photo_path.name);
     }
+    console.log(formData)
     await handleRequest('post', '/update/posts', formData);
     if (isOpen.value) toggleModal();
 };
@@ -108,7 +110,7 @@ const deleteImage = () => {
     <AppLayout title="Posts">
         <template #header>
             <div class="flex justify-between w-full">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                     Posts
                 </h2>
                 <div class="ml-auto" v-if="$page.props.user.roles.includes('admin')">
@@ -121,15 +123,15 @@ const deleteImage = () => {
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div v-for="(row, index) in updatePosts" :key="index"
-                            class="rounded-lg overflow-hidden shadow-lg p-4 bg-white">
+                            class="rounded-lg overflow-hidden shadow-lg p-4 bg-white dark:bg-gray-700">
                             <div class="px-6 py-4">
-                                <div class="font-bold text-xl mb-2 text-center">{{ row.title }}</div>
+                                <div class="font-bold text-xl mb-2 text-center text-gray-800 dark:text-gray-200">{{ row.title }}</div>
                                 <img class="w-full h-64 object-cover mt-2"
                                     :src="row.post_image_path || '/storage/post-image-photos/default.png'" alt="Post image">
-                                <p class="text-gray-700 text-base mt-2">{{ row.content }}</p>
+                                <p class="text-gray-700 dark:text-gray-300 text-base mt-2">{{ row.content }}</p>
                             </div>
                             <div class="px-6 py-4 flex justify-between items-center mt-4">
                                 <div class="px-6 py-4 flex" v-if="$page.props.user.roles.includes('admin')">
@@ -141,7 +143,7 @@ const deleteImage = () => {
                     </div>
                     <Modal :show="isOpen" @close="toggleModal">
                         <form enctype="multipart/form-data">
-                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="bg-white dark:bg-gray-700 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div class="">
                                     <div class="mb-4">
                                         <InputLabel for="title" value="Título" />
@@ -171,7 +173,7 @@ const deleteImage = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                                 <PrimaryButton type="button"
                                     class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green transition ease-in-out duration-150 sm:text-sm sm:leading-5"
                                     v-show="!editMode" @click="save(form)">
@@ -183,7 +185,7 @@ const deleteImage = () => {
                                     Atualizar
                                 </PrimaryButton>
                                 <SecondaryButton @click="toggleModal" type="button"
-                                    class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
+                                    class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white dark:bg-gray-700 text-base leading-6 font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
                                     Cancelar
                                 </SecondaryButton>
                             </div>

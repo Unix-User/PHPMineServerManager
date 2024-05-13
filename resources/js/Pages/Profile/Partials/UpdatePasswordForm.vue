@@ -38,32 +38,32 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <FormSection @submitted="updatePassword">
+    <FormSection @submitted="updatePassword" class="dark:bg-gray-800 bg-white">
         <template #title>
-            Update Password
+            Atualizar Senha
         </template>
 
         <template #description>
-            Ensure your account is using a long, random password to stay secure.
+            Garanta que sua conta utilize uma senha longa e aleatória para manter a segurança.
         </template>
 
         <template #form>
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="current_password" value="Current Password" />
+                <InputLabel for="current_password" value="Senha Atual" />
                 <TextInput id="current_password" ref="currentPasswordInput" v-model="form.current_password" type="password"
                     class="mt-1 block w-full" autocomplete="current-password" />
                 <InputError :message="form.errors.current_password" class="mt-2" />
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password" value="New Password" />
+                <InputLabel for="password" value="Nova Senha" />
                 <TextInput id="password" ref="passwordInput" v-model="form.password" type="password"
                     class="mt-1 block w-full" autocomplete="new-password" />
                 <InputError :message="form.errors.password" class="mt-2" />
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="password_confirmation" value="Confirmar Senha" />
                 <TextInput id="password_confirmation" v-model="form.password_confirmation" type="password"
                     class="mt-1 block w-full" autocomplete="new-password" />
                 <InputError :message="form.errors.password_confirmation" class="mt-2" />
@@ -72,11 +72,11 @@ const updatePassword = () => {
 
         <template #actions>
             <ActionMessage :on="form.recentlySuccessful" class="mr-3">
-                Saved.
+                Salvo.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Save
+            <PrimaryButton :class="{ 'opacity-25': form.processing, 'dark:text-white text-black': true }" :disabled="form.processing">
+                Salvar
             </PrimaryButton>
         </template>
     </FormSection>

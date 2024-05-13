@@ -25,35 +25,35 @@ const updateTeamName = () => {
 </script>
 
 <template>
-    <FormSection @submitted="updateTeamName">
+    <FormSection @submitted="updateTeamName" class="dark:bg-gray-800 bg-white">
         <template #title>
-            Team Name
+            Atualizar Nome do Time
         </template>
 
         <template #description>
-            The team's name and owner information.
+            Altere o nome do seu time e confira os detalhes do proprietário abaixo.
         </template>
 
         <template #form>
-            <!-- Team Owner Information -->
+            <!-- Informações do Proprietário do Time -->
             <div class="col-span-6">
-                <InputLabel value="Team Owner" />
+                <InputLabel value="Proprietário do Time" />
 
                 <div class="flex items-center mt-2">
                     <img class="w-12 h-12 rounded-full object-cover" :src="team.owner.profile_photo_url" :alt="team.owner.name">
 
                     <div class="ml-4 leading-tight">
-                        <div class="text-gray-900">{{ team.owner.name }}</div>
-                        <div class="text-gray-700 text-sm">
+                        <div :class="{'text-gray-900 dark:text-gray-100': $page.props.jetstream.usingDarkMode, 'text-gray-700': !$page.props.jetstream.usingDarkMode}">{{ team.owner.name }}</div>
+                        <div :class="{'text-gray-600 dark:text-gray-300': $page.props.jetstream.usingDarkMode, 'text-gray-500': !$page.props.jetstream.usingDarkMode}" class="text-sm">
                             {{ team.owner.email }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Team Name -->
+            <!-- Nome do Time -->
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="name" value="Team Name" />
+                <InputLabel for="name" value="Nome do Time" />
 
                 <TextInput
                     id="name"
@@ -69,11 +69,11 @@ const updateTeamName = () => {
 
         <template v-if="permissions.canUpdateTeam" #actions>
             <ActionMessage :on="form.recentlySuccessful" class="mr-3">
-                Saved.
+                Alterações Salvas.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Save
+            <PrimaryButton :class="{ 'opacity-25': form.processing, 'dark:bg-blue-500 bg-blue-600': !form.processing }" :disabled="form.processing">
+                Salvar Alterações
             </PrimaryButton>
         </template>
     </FormSection>

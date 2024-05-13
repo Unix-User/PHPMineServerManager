@@ -16,7 +16,7 @@ defineProps({
 
     <div
         class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
-        style="background-image: url('storage/background.png')"
+        :style="`background-image: url('storage/background.png')`"
     >
         <div
             v-if="canLogin"
@@ -78,7 +78,7 @@ defineProps({
                                 <h2
                                     class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
                                 >
-                                    Regras do Servidor
+                                    Conheça as Regras do Servidor
                                 </h2>
                             </div>
                             <p
@@ -336,3 +336,4 @@ defineProps({
         </div>
     </div>
 </template>
+

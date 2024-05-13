@@ -21,24 +21,24 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Forgot Password" />
+    <Head title="Esqueceu a Senha" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
+        <div class="mb-4 text-sm" :class="{'text-gray-600': $theme === 'light', 'text-gray-300': $theme === 'dark'}">
+            Esqueceu sua senha? Não se preocupe. Informe seu endereço de e-mail e enviaremos um link para você redefinir sua senha.
         </div>
 
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
+        <div v-if="status" class="mb-4 font-medium text-sm" :class="{'text-green-600': $theme === 'light', 'text-green-300': $theme === 'dark'}">
             {{ status }}
         </div>
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="E-mail" />
                 <TextInput
                     id="email"
                     v-model="form.email"
@@ -52,8 +52,8 @@ const submit = () => {
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Email Password Reset Link
+                <PrimaryButton :class="{ 'opacity-25': form.processing, 'text-white': $theme === 'dark', 'text-black': $theme === 'light' }" :disabled="form.processing">
+                    Enviar Link de Redefinição de Senha
                 </PrimaryButton>
             </div>
         </form>

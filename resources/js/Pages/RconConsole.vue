@@ -87,33 +87,32 @@ export default {
 
 <template>
     <AppLayout title="Console">
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Console
+<template #header>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">                Console RCON
             </h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-5">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-5">
                     <div class="container mx-auto" id="content">
                         <div id="consoleRow">
-                            <div class="bg-white rounded shadow-sm p-4 mb-4" id="consoleContent">
+                            <div class="bg-white dark:bg-gray-700 rounded shadow-sm p-4 mb-4" id="consoleContent">
                                 <div class="flex justify-between items-center">
-                                    <h3 class="text-lg font-bold">
-                                        <i class="fas fa-terminal"></i> Console
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                                        <i class="fas fa-terminal"></i> Painel de Controle
                                     </h3>
                                     <div class="space-x-2">
-                                        <a class="text-sm text-gray-500 hover:text-gray-700"
-                                            href="http://minecraft.gamepedia.com/Commands" target="_blank" title="Commands">
+                                        <a class="text-sm text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
+                                            href="http://minecraft.gamepedia.com/Commands" target="_blank" title="Lista de Comandos">
                                             <i class="fas fa-question-circle"></i>
-                                            <span class="hidden sm:inline"> Commands</span>
+                                            <span class="hidden sm:inline"> Comandos</span>
                                         </a>
-                                        <a class="text-sm text-gray-500 hover:text-gray-700"
+                                        <a class="text-sm text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
                                             href="http://www.minecraftinfo.com/idlist.htm" target="_blank"
-                                            title="Items IDs">
+                                            title="IDs de Itens">
                                             <i class="fas fa-info-circle"></i>
-                                            <span class="hidden sm:inline"> Items IDs</span>
+                                            <span class="hidden sm:inline"> IDs de Itens</span>
                                         </a>
                                     </div>
                                 </div>
@@ -128,22 +127,22 @@ export default {
                             <div class="flex items-center space-x-2" id="consoleCommand">
                                 <div class="flex items-center space-x-2">
                                     <input id="chkAutoScroll" type="checkbox" checked="true" autocomplete="off"
-                                        title="Auto Scroll" />
+                                        title="Rolagem Automática" />
                                     <i class="fas fa-arrow-down"></i>
                                 </div>
                                 <div id="txtCommandResults"></div>
                                 <input type="text" class="form-input flex-grow" id="txtCommand" v-model.trim="command"
-                                    @keyup.enter="sendCommand" placeholder="Enter command here..." />
+                                    @keyup.enter="sendCommand" placeholder="Digite o comando aqui..." />
                                 <div class="space-x-2">
                                     <button type="button" class="btn btn-primary" id="btnSend" @click="sendCommand"
-                                        title="Send Command">
+                                        title="Enviar Comando">
                                         <i class="fas fa-paper-plane"></i>
-                                        <span class="hidden sm:inline"> Send</span>
+                                        <span class="hidden sm:inline"> Enviar</span>
                                     </button>
                                     <button type="button" class="btn btn-warning" id="btnClearLog" @click="clearLog"
-                                        title="Clear Log">
+                                        title="Limpar Log">
                                         <i class="fas fa-eraser"></i>
-                                        <span class="hidden sm:inline"> Clear</span>
+                                        <span class="hidden sm:inline"> Limpar</span>
                                     </button>
                                 </div>
                             </div>
@@ -155,4 +154,18 @@ export default {
     </AppLayout>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Adiciona suporte para tema escuro e claro */
+body {
+    color: #333;
+    background-color: #fff;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #ccc;
+        background-color: #222;
+    }
+}
+</style>

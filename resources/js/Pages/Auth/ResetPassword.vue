@@ -27,21 +27,21 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Reset Password" />
+    <Head title="Redefinir Senha" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <form @submit.prevent="submit">
+        <form @submit.prevent="submit" class="dark:bg-gray-800 bg-white">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="E-mail" />
                 <TextInput
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full dark:text-gray-300 dark:bg-gray-700"
                     required
                     autofocus
                     autocomplete="username"
@@ -50,12 +50,12 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Senha" />
                 <TextInput
                     id="password"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full dark:text-gray-300 dark:bg-gray-700"
                     required
                     autocomplete="new-password"
                 />
@@ -63,12 +63,12 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="password_confirmation" value="Confirme a Senha" />
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full dark:text-gray-300 dark:bg-gray-700"
                     required
                     autocomplete="new-password"
                 />
@@ -76,8 +76,8 @@ const submit = () => {
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Reset Password
+                <PrimaryButton :class="{ 'opacity-25': form.processing, 'dark:bg-gray-900 dark:text-white': true }" :disabled="form.processing">
+                    Redefinir Senha
                 </PrimaryButton>
             </div>
         </form>

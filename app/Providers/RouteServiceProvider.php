@@ -8,6 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
+/**
+ * @OA\Info(
+ *      version="1.0.0",
+ *      title="Laravel Swagger API",
+ *      description="API para interagir com o Laravel",
+ *      @OA\Contact(
+ *          email="your-email@example.com"
+ *      ),
+ * )
+ */
+
 class RouteServiceProvider extends ServiceProvider
 {
     /**

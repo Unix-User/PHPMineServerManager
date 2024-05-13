@@ -158,7 +158,7 @@ fetchShopItems();
     <AppLayout title="Shop Items">
         <template #header>
             <div class="flex justify-between w-full">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight dark:text-white">
                     Shop Items
                 </h2>
                 <div class="ml-auto" v-if="$page.props.user.roles.includes('admin')">
@@ -171,20 +171,21 @@ fetchShopItems();
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4">
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg px-4 py-4 dark:bg-gray-800">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div v-for="(row, index) in $page.props.shopItems" :key="index"
-                            class="rounded-lg overflow-hidden shadow-lg p-4 bg-white">
+                            class="rounded-lg overflow-hidden shadow-lg p-4 bg-white dark:bg-gray-700">
                             <div class="px-6 py-4">
-                                <div class="font-bold text-xl mb-2 text-center">{{ row.name }}</div>
+                                <div class="font-bold text-xl mb-2 text-center dark:text-white">{{ row.name }}</div>
                                 <img class="w-full h-64 object-cover mt-2" :src="row.image || '/storage/shop-item-photos/default.png'"
                                     alt="Product image">
-                                <p class="text-gray-700 text-base mt-2">{{ row.description }}</p>
+                                <p class="text-gray-700 text-base mt-2 dark:text-gray-300">{{ row.description }}</p>
                             </div>
                             <div class="px-6 py-4 flex justify-between items-center mt-4">
                                 <span
-                                    class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">{{
-                                        row.price }}</span>
+                                    class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2 dark:bg-gray-600 dark:text-gray-300">
+                                    {{ row.price }}
+                                </span>
                                 <div class="px-6 py-4 flex" v-if="$page.props.user.roles.includes('admin')">
                                     <PrimaryButton @click="edit(row)">Edit</PrimaryButton>
                                     <SecondaryButton @click="deleteRow(row)">Delete</SecondaryButton>
@@ -194,7 +195,7 @@ fetchShopItems();
                     </div>
                     <Modal :show="isOpen" @close="toggleModal">
                         <form enctype="multipart/form-data">
-                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 dark:bg-gray-700">
                                 <div class="">
                                     <div class="mb-4">
                                         <InputLabel for="name" value="Name" />
@@ -223,7 +224,7 @@ fetchShopItems();
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse dark:bg-gray-600">
                                 <PrimaryButton type="button"
                                     class="inline-flex justify-center w-full rounded-md border border-transparent px-4 py-2 bg-green-600 text-base leading-6 font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:border-green-700 focus:shadow-outline-green transition ease-in-out duration-150 sm:text-sm sm:leading-5"
                                     v-show="!editMode" @click="save(form)">
@@ -235,7 +236,7 @@ fetchShopItems();
                                     Update
                                 </PrimaryButton>
                                 <SecondaryButton @click="toggleModal" type="button"
-                                    class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5">
+                                    class="inline-flex justify-center w-full rounded-md border border-gray-300 px-4 py-2 bg-white text-base leading-6 font-medium text-gray-700 shadow-sm hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue transition ease-in-out duration-150 sm:text-sm sm:leading-5 dark:bg-gray-700 dark:text-gray-300">
                                     Cancel
                                 </SecondaryButton>
                             </div>

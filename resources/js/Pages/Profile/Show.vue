@@ -14,10 +14,10 @@ defineProps({
 </script>
 
 <template>
-    <AppLayout title="Profile">
+    <AppLayout title="Perfil">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Profile
+            <h2 class="font-semibold text-xl dark:text-white text-gray-800 leading-tight">
+                Perfil
             </h2>
         </template>
 
@@ -48,7 +48,6 @@ defineProps({
 
                 <template v-if="$page.props.jetstream.hasAccountDeletionFeatures">
                     <SectionBorder />
-
                     <DeleteUserForm class="mt-10 sm:mt-0" />
                 </template>
             </div>

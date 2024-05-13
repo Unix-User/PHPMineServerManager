@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 
 const props = defineProps({
     align: {
@@ -12,7 +12,7 @@ const props = defineProps({
     },
     contentClasses: {
         type: Array,
-        default: () => ['py-1', 'bg-white'],
+        default: () => ['py-1'],
     },
 });
 
@@ -44,6 +44,17 @@ const alignmentClasses = computed(() => {
 
     return 'origin-top';
 });
+
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const useDarkMode = ref(prefersDark);
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    useDarkMode.value = e.matches;
+});
+
+const themeClasses = computed(() => {
+    return useDarkMode.value ? 'bg-gray-800 text-white' : 'bg-white text-gray-700';
+});
 </script>
 
 <template>
@@ -66,7 +77,7 @@ const alignmentClasses = computed(() => {
             <div
                 v-show="open"
                 class="absolute z-50 mt-2 rounded-md shadow-lg"
-                :class="[widthClass, alignmentClasses]"
+                :class="[widthClass, alignmentClasses, themeClasses]"
                 style="display: none;"
                 @click="open = false"
             >

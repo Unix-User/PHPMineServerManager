@@ -35,11 +35,6 @@ class LoginController extends Controller
         return redirect('/dashboard');
     }
 
-    public function redirectToDiscord()
-    {
-        return Socialite::driver('discord')->redirect();
-    }
-
     private function handleUser($user)
     {
         $existingUser = User::where('email', $user->getEmail())->first();

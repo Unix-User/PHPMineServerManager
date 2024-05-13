@@ -13,10 +13,9 @@ defineProps({
 </script>
 
 <template>
-    <AppLayout title="Team Settings">
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Team Settings
+    <AppLayout title="Configurações do Time">
+<template #header>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">                Gerenciamento do Time
             </h2>
         </template>
 

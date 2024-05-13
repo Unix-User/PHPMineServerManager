@@ -19,25 +19,25 @@ const createTeam = () => {
 </script>
 
 <template>
-    <FormSection @submitted="createTeam">
+    <FormSection @submitted="createTeam" class="dark:bg-gray-800 bg-white">
         <template #title>
-            Team Details
+            Detalhes da Equipe
         </template>
 
         <template #description>
-            Create a new team to collaborate with others on projects.
+            Crie uma nova equipe para colaborar com outras pessoas em projetos.
         </template>
 
         <template #form>
             <div class="col-span-6">
-                <InputLabel value="Team Owner" />
+                <InputLabel value="Proprietário da Equipe" />
 
                 <div class="flex items-center mt-2">
                     <img class="object-cover w-12 h-12 rounded-full" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
 
                     <div class="ml-4 leading-tight">
-                        <div class="text-gray-900">{{ $page.props.auth.user.name }}</div>
-                        <div class="text-sm text-gray-700">
+                        <div class="text-gray-900 dark:text-gray-100">{{ $page.props.auth.user.name }}</div>
+                        <div class="text-sm text-gray-700 dark:text-gray-300">
                             {{ $page.props.auth.user.email }}
                         </div>
                     </div>
@@ -45,7 +45,7 @@ const createTeam = () => {
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="name" value="Team Name" />
+                <InputLabel for="name" value="Nome da Equipe" />
                 <TextInput
                     id="name"
                     v-model="form.name"
@@ -58,8 +58,8 @@ const createTeam = () => {
         </template>
 
         <template #actions>
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Create
+            <PrimaryButton :class="{ 'opacity-25': form.processing, 'dark:bg-blue-500 bg-blue-600': !form.processing }" :disabled="form.processing">
+                Criar
             </PrimaryButton>
         </template>
     </FormSection>

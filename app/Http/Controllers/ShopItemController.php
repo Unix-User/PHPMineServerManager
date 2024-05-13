@@ -35,12 +35,8 @@ class ShopItemController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate($this->rules);
-
-        
-
-        
         $image = $request->file('item_photo_path');
-        if($image){
+        if ($image) {
             $fileName = time() . '.' . $image->getClientOriginalExtension();
             $imagePath = Storage::disk('public')->put('shop-item-photos/' . $fileName, file_get_contents($image));
             $validatedData['item_photo_path'] = $imagePath;
@@ -73,11 +69,11 @@ class ShopItemController extends Controller
         $shopItem = ShopItem::findOrFail($id);
         $validatedData = $request->validate($this->rules);
         $image = $request->file('item_photo_path');
-        if($image){
+        if ($image) {
             $fileName = time() . '.' . $image->getClientOriginalExtension();
             $imagePath = Storage::disk('public')->put('shop-item-photos/' . $fileName, file_get_contents($image));
             $validatedData['item_photo_path'] = $imagePath;
-        } else if($request->input('remove_image')) {
+        } else if ($request->input('remove_image')) {
             $validatedData['item_photo_path'] = null;
         }
 

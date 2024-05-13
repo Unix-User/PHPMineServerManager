@@ -38,26 +38,26 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Two-factor Confirmation" />
+    <Head title="Confirmação de Autenticação de Dois Fatores" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <div class="mb-4 text-sm text-gray-600">
+        <div class="mb-4 text-sm" :class="{'text-gray-600': !$theme.isDark, 'text-gray-300': $theme.isDark}">
             <template v-if="! recovery">
-                Please confirm access to your account by entering the authentication code provided by your authenticator application.
+                Confirme o acesso à sua conta inserindo o código de autenticação fornecido pelo seu aplicativo de autenticação.
             </template>
 
             <template v-else>
-                Please confirm access to your account by entering one of your emergency recovery codes.
+                Confirme o acesso à sua conta inserindo um dos seus códigos de recuperação de emergência.
             </template>
         </div>
 
         <form @submit.prevent="submit">
             <div v-if="! recovery">
-                <InputLabel for="code" value="Code" />
+                <InputLabel for="code" value="Código" />
                 <TextInput
                     id="code"
                     ref="codeInput"
@@ -72,7 +72,7 @@ const submit = () => {
             </div>
 
             <div v-else>
-                <InputLabel for="recovery_code" value="Recovery Code" />
+                <InputLabel for="recovery_code" value="Código de Recuperação" />
                 <TextInput
                     id="recovery_code"
                     ref="recoveryCodeInput"
@@ -85,18 +85,18 @@ const submit = () => {
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <button type="button" class="text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer" @click.prevent="toggleRecovery">
+                <button type="button" class="text-sm hover:text-gray-900 underline cursor-pointer" :class="{'text-gray-600': !$theme.isDark, 'text-gray-300': $theme.isDark}" @click.prevent="toggleRecovery">
                     <template v-if="! recovery">
-                        Use a recovery code
+                        Usar um código de recuperação
                     </template>
 
                     <template v-else>
-                        Use an authentication code
+                        Usar um código de autenticação
                     </template>
                 </button>
 
                 <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
+                    Entrar
                 </PrimaryButton>
             </div>
         </form>

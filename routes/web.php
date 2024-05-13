@@ -87,6 +87,7 @@ Route::middleware([
     Route::get('/backups', fn () => Inertia::render('Backups'))->name('backups');
     Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
     Route::get('/help', fn () => Inertia::render('Help'));
+    Route::get('/updates', fn () => Inertia::render('UpdatesPage'))->name('updates');
     
     // shop
     Route::resource('shop/items', ShopItemController::class)->names([
@@ -97,14 +98,14 @@ Route::middleware([
         'destroy' => 'shop.items.delete',
     ]);
 
-    // updates
-    Route::resource('update/posts', UpdatePostsController::class)->names([
-        'index' => 'update.posts',
-        'store' => 'update.posts.store',
-        'show' => 'update.posts.show',
-        'update' => 'update.posts.update',
-        'destroy' => 'update.posts.delete',
-    ]);
+    // // updates
+    // Route::resource('update/posts', UpdatePostsController::class)->names([
+    //     'index' => 'update.posts',
+    //     'store' => 'update.posts.store',
+    //     'show' => 'update.posts.show',
+    //     'update' => 'update.posts.update',
+    //     'destroy' => 'update.posts.delete',
+    // ]);
 
     // rcon
     Route::get('/rcon', function () {
@@ -124,18 +125,6 @@ Route::middleware([
     Route::get('status', [StatusController::class, 'show'])->name('status');
     Route::get('busy', [StatusController::class, 'overviewerIsRunning'])->name('busy');
 
-
-    Route::prefix('discord')->group(function () {
-        Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
-        Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
-        Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
-        Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
-        Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
-        Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
-        Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
-        Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
-    });
-
     Route::resource('assinatura/vip', AssinaturaVipController::class)->names([
         'index' => 'assinatura.vip',
         'store' => 'assinatura.vip.store',
@@ -152,4 +141,16 @@ Route::middleware([
         Route::post('/give-player-item', [JsonApiReloadedController::class, 'givePlayerItem'])->name('api.give-player-item');
         Route::post('/set-world-time', [JsonApiReloadedController::class, 'setWorldTime'])->name('api.set-world-time');
     });
+});
+
+Route::prefix('discord')->group(function () {
+    Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
+    Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
+    Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
+    Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
+    Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
+    Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
+    Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
+    Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
+    Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
 });

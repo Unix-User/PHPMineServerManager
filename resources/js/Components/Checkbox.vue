@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 
 const emit = defineEmits(['update:checked']);
 
@@ -23,6 +23,12 @@ const proxyChecked = computed({
         emit('update:checked', val);
     },
 });
+
+const isDarkMode = ref(false);
+
+onMounted(() => {
+    isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+});
 </script>
 
 
@@ -31,6 +37,11 @@ const proxyChecked = computed({
         v-model="proxyChecked"
         type="checkbox"
         :value="value"
-        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+        :class="[
+            'rounded shadow-sm',
+            {'border-gray-300 text-indigo-600 focus:ring-indigo-500': !isDarkMode.value},
+            {'border-gray-600 text-indigo-300 focus:ring-indigo-700': isDarkMode.value}
+        ]"
     >
 </template>
+

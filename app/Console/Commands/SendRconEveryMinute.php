@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SendRconEveryMinute extends Command
 {
@@ -26,18 +27,27 @@ class SendRconEveryMinute extends Command
      */
     public function handle()
     {
-        $command = [
-            'execute as @a[tag=hasNetheriteBlocks] at @s run summon minecraft:skeleton ~ ~ ~ {Count:10}',
-            'execute as @a[tag=hasDiamondBlocks] at @s run summon minecraft:zombie_villager ~ ~ ~ {Count:10}',
-            'execute as @a[tag=hasMoreThan32Diamonds] at @s run summon minecraft:witch ~ ~ ~ {Count:10}',
-            'execute as @a[tag=hasMoreThan32NetheriteBars] at @s run summon minecraft:wither_skeleton ~ ~ ~ {Count:10}',
-            'execute as @a[tag=hasMoreThan32NetheriteBars] at @s run tell @s Voce foi amaldiçoado pela netherite',
-            'execute as @a[tag=hasMoreThan32Diamonds] at @s run tell @s Voce foi amaldiçoado pelos diamantes',
-            'execute as @a[tag=hasDiamondBlocks] run tell @s Você está com a maldição do diamante!',
-            'execute as @a[tag=hasNetheriteBlocks] run tell @s Você está com a maldição da netherite!',
-        ];
+        $command = 'list';
 
         $request = new Request(['command' => $command]);
-        app('App\Http\Controllers\MinecraftRconController')->executeInternalCommand($request);
+        $onlinePlayers = app('App\Http\Controllers\MinecraftRconController')->executeInternalCommand($request);
+
+        $command = 'lp group jogador listmembers';
+
+        $request = new Request(['command' => $command]);
+        $groupMembers = app('App\Http\Controllers\MinecraftRconController')->executeInternalCommand($request);
+        Log::channel('single')->info($groupMembers);
+        if (is_array($onlinePlayers)) {
+            Log::channel('single')->info( 'array found');
+            foreach ($onlinePlayers as $player) {
+                if (is_string($player) && in_array($player, $groupMembers)) {
+                    Log::channel('single')->info('Fixing permissions for: ' . $player);
+                    $command = 'lp user ' . $player . ' parent remove default';
+
+                    $request = new Request(['command' => $command]);
+                    app('App\Http\Controllers\MinecraftRconController')->executeInternalCommand($request);
+                }
+            }
+        }
     }
 }

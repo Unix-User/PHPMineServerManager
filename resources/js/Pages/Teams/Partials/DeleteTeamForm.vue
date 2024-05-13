@@ -27,37 +27,37 @@ const deleteTeam = () => {
 <template>
     <ActionSection>
         <template #title>
-            Delete Team
+            Excluir Equipe
         </template>
 
         <template #description>
-            Permanently delete this team.
+            Exclusão permanente da equipe.
         </template>
 
         <template #content>
-            <div class="max-w-xl text-sm text-gray-600">
-                Once a team is deleted, all of its resources and data will be permanently deleted. Before deleting this team, please download any data or information regarding this team that you wish to retain.
+            <div class="max-w-xl text-sm text-gray-600 dark:text-gray-300">
+                Ao excluir uma equipe, todos os seus recursos e dados serão permanentemente excluídos. Antes de proceder, certifique-se de baixar todos os dados ou informações da equipe que deseja preservar.
             </div>
 
             <div class="mt-5">
                 <DangerButton @click="confirmTeamDeletion">
-                    Delete Team
+                    Excluir Equipe
                 </DangerButton>
             </div>
 
-            <!-- Delete Team Confirmation Modal -->
+            <!-- Modal de Confirmação de Exclusão da Equipe -->
             <ConfirmationModal :show="confirmingTeamDeletion" @close="confirmingTeamDeletion = false">
                 <template #title>
-                    Delete Team
+                    Confirmar Exclusão da Equipe
                 </template>
 
                 <template #content>
-                    Are you sure you want to delete this team? Once a team is deleted, all of its resources and data will be permanently deleted.
+                    Tem certeza de que deseja excluir esta equipe? Uma vez excluída, todos os recursos e dados associados serão permanentemente perdidos.
                 </template>
 
                 <template #footer>
                     <SecondaryButton @click="confirmingTeamDeletion = false">
-                        Cancel
+                        Cancelar
                     </SecondaryButton>
 
                     <DangerButton
@@ -66,7 +66,7 @@ const deleteTeam = () => {
                         :disabled="form.processing"
                         @click="deleteTeam"
                     >
-                        Delete Team
+                        Confirmar Exclusão
                     </DangerButton>
                 </template>
             </ConfirmationModal>

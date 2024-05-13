@@ -14,6 +14,7 @@ let factions = [
     { id: 3, name: 'Facção 3', description: 'Descrição da Facção 3' }
 ];
 
+
 export default {
     components: {
         AppLayout,
@@ -21,7 +22,9 @@ export default {
     },
     setup() {
         return {
-            factions
+            factions,
+            message,
+            sendMessage
         };
     },
 };
@@ -44,6 +47,14 @@ export default {
                         <div v-for="faction in factions" :key="faction.id">
                             <h2>{{ faction.name }}</h2>
                             <p>{{ faction.description }}</p>
+
+                            <form @submit.prevent="sendMessage">
+                                <label for="message" class="sr-only">Mensagem</label>
+                                <input type="text" id="message" v-model="message" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Digite sua mensagem aqui">
+                                <button type="submit" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Enviar
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
