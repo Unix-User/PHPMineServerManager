@@ -114,7 +114,7 @@ const displayableRole = (role) => {
                     <!-- Member Email -->
                     <div class="col-span-6 sm:col-span-4">
                         <InputLabel for="email" value="E-mail" />
-                        <TextInput id="email" v-model="addTeamMemberForm.email" type="email" class="mt-1 block w-full" />
+                        <TextInput id="email" v-model="addTeamMemberForm.email" type="email" class="mt-1 block w-full dark:text-gray-800" />
                         <InputError :message="addTeamMemberForm.errors.email" class="mt-2" />
                     </div>
 

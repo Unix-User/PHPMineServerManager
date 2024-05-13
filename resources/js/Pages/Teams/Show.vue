@@ -24,7 +24,7 @@ defineProps({
 
         <div>
             <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
-                <div v-if="$page.props.user.roles.includes('admin')">
+                <div>
                     <UpdateTeamNameForm
                         :team="team"
                         :permissions="permissions"
@@ -33,7 +33,7 @@ defineProps({
                     <SectionBorder />
                 </div>
 
-                <div v-if="$page.props.user.roles.includes('admin')">
+                <div>
                     <TeamMemberManager
                         :team="team"
                         :available-roles="availableRoles"

@@ -85,7 +85,6 @@ Route::middleware([
     // pages
     Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
     Route::get('/map', fn () => Inertia::render('MapIframe'))->name('map');
-    Route::get('/backups', fn () => Inertia::render('Backups'))->name('backups');
     Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
     Route::get('/help', fn () => Inertia::render('Help'));
     Route::get('/updates', fn () => Inertia::render('UpdatesPage'))->name('updates');
@@ -108,6 +107,14 @@ Route::middleware([
     //     'destroy' => 'update.posts.delete',
     // ]);
 
+    // backups
+    Route::get('/backups', function () {
+        if (Auth::user()->roles->pluck('name')->contains('admin')) {
+            return Inertia::render('Backups');
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    })->name('backups');
     // rcon
     Route::get('/rcon', function () {
         if (Auth::user()->roles->pluck('name')->contains('admin')) {

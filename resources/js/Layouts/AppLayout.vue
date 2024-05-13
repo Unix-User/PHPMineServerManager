@@ -54,7 +54,7 @@ const logout = () => {
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('dashboard')}">Painel de Controle</NavLink>
-                                <NavLink :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</NavLink>
+                                <NavLink v-if="$page.props.user.roles.includes('admin')" :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</NavLink>
                                 <NavLink v-if="$page.props.user.roles.includes('admin')" :href="route('rcon')" :active="route().current('rcon')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('rcon')}">Controle Rcon</NavLink>
                                 <NavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('assinatura.vip')}">Assinatura VIP</NavLink>
                                 <NavLink :href="route('map')" :active="route().current('map')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('map')}">Mapa Interativo</NavLink>
@@ -154,8 +154,8 @@ const logout = () => {
                 <div :class="{'block': showingNavigationDropdown, 'hidden': !showingNavigationDropdown}" class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('dashboard')}">Painel de Controle</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('rcon')" :active="route().current('rcon')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('rcon')}">Controle Rcon</ResponsiveNavLink>
+                        <ResponsiveNavLink v-if="$page.props.user.roles.includes('admin')" :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</ResponsiveNavLink>
+                        <ResponsiveNavLink v-if="$page.props.user.roles.includes('admin')" :href="route('rcon')" :active="route().current('rcon')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('rcon')}">Controle Rcon</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('assinatura.vip')}">Assinatura VIP</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('map')" :active="route().current('map')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('map')}">Mapa Interativo</ResponsiveNavLink>
                         <ResponsiveNavLink href="help" :active="route().current('help')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('help')}">Tutoriais e Guias</ResponsiveNavLink>
@@ -222,7 +222,7 @@ const logout = () => {
             </nav>
 
             <!-- Page Heading -->
-            <header v-if="$slots.header" :class="{'dark:bg-gray-800/80 dark:text-white': $page.props.user.preferredTheme !== 'dark', 'bg-white/80 text-gray-900': $page.props.user.preferredTheme === 'dark'}">
+            <header v-if="$slots.header" :class="[$page.props.user.preferredTheme === 'dark' ? 'bg-white/80 text-gray-900' : 'dark:bg-gray-800/80 dark:text-white']">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
