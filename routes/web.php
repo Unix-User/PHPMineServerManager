@@ -51,6 +51,7 @@ $loginController = app(LoginController::class);
 Route::get('auth/github', function () use ($loginController) {
     return $loginController->redirectToProvider(request(), 'github');
 })->name('github');
+
 Route::get('auth/github/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'github');
 })->name('github.callback');
@@ -89,14 +90,14 @@ Route::middleware([
     Route::get('/help', fn () => Inertia::render('Help'));
     Route::get('/updates', fn () => Inertia::render('UpdatesPage'))->name('updates');
     
-    // shop
-    Route::resource('shop/items', ShopItemController::class)->names([
-        'index' => 'shop.items',
-        'store' => 'shop.items.store',
-        'show' => 'shop.items.show',
-        'update' => 'shop.items.update',
-        'destroy' => 'shop.items.delete',
-    ]);
+    // // shop
+    // Route::resource('shop/items', ShopItemController::class)->names([
+    //     'index' => 'shop.items',
+    //     'store' => 'shop.items.store',
+    //     'show' => 'shop.items.show',
+    //     'update' => 'shop.items.update',
+    //     'destroy' => 'shop.items.delete',
+    // ]);
 
     // // updates
     // Route::resource('update/posts', UpdatePostsController::class)->names([
@@ -137,21 +138,21 @@ Route::middleware([
         Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
         Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
         Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
-        Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
-        Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
-        Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
-        Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
-        Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
-        Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
+        // Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
+        // Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
+        // Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
+        // Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
+        // Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
+        // Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
     });
     
-    Route::prefix('api')->group(function () {
-        Route::get('/get-latest-chats', [JsonApiReloadedController::class, 'getLatestChatsWithLimit'])->name('api.get-latest-chats');
-        Route::post('/execute-command', [JsonApiReloadedController::class, 'runCommand'])->name('api.execute-command');
-        Route::get('/check-connection', [JsonApiReloadedController::class, 'verifyApiStatus'])->name('api.check-connection');
-        Route::post('/teleport-player', [JsonApiReloadedController::class, 'teleportPlayer'])->name('api.teleport-player');
-        Route::post('/give-player-item', [JsonApiReloadedController::class, 'givePlayerItem'])->name('api.give-player-item');
-        Route::post('/set-world-time', [JsonApiReloadedController::class, 'setWorldTime'])->name('api.set-world-time');
-    });
+    // Route::prefix('api')->group(function () {
+    //     Route::get('/get-latest-chats', [JsonApiReloadedController::class, 'getLatestChatsWithLimit'])->name('api.get-latest-chats');
+    //     Route::post('/execute-command', [JsonApiReloadedController::class, 'runCommand'])->name('api.execute-command');
+    //     Route::get('/check-connection', [JsonApiReloadedController::class, 'verifyApiStatus'])->name('api.check-connection');
+    //     Route::post('/teleport-player', [JsonApiReloadedController::class, 'teleportPlayer'])->name('api.teleport-player');
+    //     Route::post('/give-player-item', [JsonApiReloadedController::class, 'givePlayerItem'])->name('api.give-player-item');
+    //     Route::post('/set-world-time', [JsonApiReloadedController::class, 'setWorldTime'])->name('api.set-world-time');
+    // });
 });
 
