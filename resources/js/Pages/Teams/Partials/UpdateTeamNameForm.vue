@@ -25,7 +25,7 @@ const updateTeamName = () => {
 </script>
 
 <template>
-    <FormSection @submitted="updateTeamName" class="dark:bg-gray-800 bg-white">
+    <FormSection @submitted="updateTeamName">
         <template #title>
             Atualizar Nome do Time
         </template>

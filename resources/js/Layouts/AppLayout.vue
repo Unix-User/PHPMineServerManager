@@ -39,7 +39,7 @@ const logout = () => {
         <Banner />
         <div style="background-image: url('/storage/background.png'); background-size: cover; background-attachment: fixed; background-position: center;"
             class="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed">
-            <nav class="bg-white dark:bg-gray-900">
+            <nav class="bg-white dark:bg-gray-800">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
@@ -53,19 +53,19 @@ const logout = () => {
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">Painel de Controle</NavLink>
-                                <NavLink :href="route('backups')" :active="route().current('backups')">Gerenciamento de Backups</NavLink>
-                                <NavLink v-if="$page.props.user.roles.includes('admin')" :href="route('rcon')" :active="route().current('rcon')">Controle Rcon</NavLink>
-                                <NavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')">Assinatura VIP</NavLink>
-                                <NavLink :href="route('map')" :active="route().current('map')">Mapa Interativo</NavLink>
-                                <NavLink href="help" :active="route().current('help')">Tutoriais e Guias</NavLink>
-                                <NavLink :href="route('updates')" :active="route().current('updates')">Atualizações do Sistema</NavLink>
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('dashboard')}">Painel de Controle</NavLink>
+                                <NavLink :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</NavLink>
+                                <NavLink v-if="$page.props.user.roles.includes('admin')" :href="route('rcon')" :active="route().current('rcon')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('rcon')}">Controle Rcon</NavLink>
+                                <NavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('assinatura.vip')}">Assinatura VIP</NavLink>
+                                <NavLink :href="route('map')" :active="route().current('map')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('map')}">Mapa Interativo</NavLink>
+                                <NavLink href="help" :active="route().current('help')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('help')}">Tutoriais e Guias</NavLink>
+                                <NavLink :href="route('updates')" :active="route().current('updates')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('updates')}">Atualizações do Sistema</NavLink>
                             </div>
                         </div>
                         <div class="hidden sm:flex sm:items-center sm:ml-6">
                             <div class="ml-3 relative">
                                 <!-- Teams Dropdown -->
-                                <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="60" :class="{'text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg shadow': $page.props.user.preferredTheme === 'dark', 'text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg shadow': $page.props.user.preferredTheme !== 'dark'}">
+                                <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="60" :class="{'text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg shadow': $page.props.user.preferredTheme === 'dark', 'dark:text-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg shadow dark:bg-gray-900': $page.props.user.preferredTheme !== 'dark'}">
                                     <template #trigger>
                                         <span class="inline-flex rounded-md">
                                             <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md hover:text-gray-900 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
@@ -109,7 +109,7 @@ const logout = () => {
 
                             <!-- Settings Dropdown -->
                             <div class="ml-3 relative">
-                                <Dropdown align="right" width="48" :class="{'text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg shadow': $page.props.user.preferredTheme === 'dark', 'text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg shadow': $page.props.user.preferredTheme !== 'dark'}">
+                                <Dropdown align="right" width="48" :class="{'text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-full shadow': $page.props.user.preferredTheme === 'dark', 'text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full shadow': $page.props.user.preferredTheme !== 'dark'}">
                                     <template #trigger>
                                         <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
                                             <img class="h-8 w-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name" />
@@ -153,13 +153,13 @@ const logout = () => {
                 <!-- Responsive Navigation Menu -->
                 <div :class="{'block': showingNavigationDropdown, 'hidden': !showingNavigationDropdown}" class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">Painel de Controle</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('backups')" :active="route().current('backups')">Gerenciamento de Backups</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('rcon')" :active="route().current('rcon')">Controle Rcon</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')">Assinatura VIP</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('map')" :active="route().current('map')">Mapa Interativo</ResponsiveNavLink>
-                        <ResponsiveNavLink href="help" :active="route().current('help')">Tutoriais e Guias</ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('updates')" :active="route().current('updates')">Atualizações do Sistema</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('dashboard')}">Painel de Controle</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('backups')" :active="route().current('backups')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('backups')}">Gerenciamento de Backups</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('rcon')" :active="route().current('rcon')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('rcon')}">Controle Rcon</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('assinatura.vip')" :active="route().current('assinatura.vip')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('assinatura.vip')}">Assinatura VIP</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('map')" :active="route().current('map')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('map')}">Mapa Interativo</ResponsiveNavLink>
+                        <ResponsiveNavLink href="help" :active="route().current('help')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('help')}">Tutoriais e Guias</ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('updates')" :active="route().current('updates')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('updates')}">Atualizações do Sistema</ResponsiveNavLink>
                     </div>
 
                     <!-- Responsive Settings Options -->
@@ -176,13 +176,13 @@ const logout = () => {
                         </div>
 
                         <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">Perfil</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('profile.show')}">Perfil</ResponsiveNavLink>
 
-                            <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">Tokens de API</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('api-tokens.index')}">Tokens de API</ResponsiveNavLink>
 
                             <!-- Authentication -->
                             <form method="POST" @submit.prevent="logout">
-                                <ResponsiveNavLink as="button">Sair</ResponsiveNavLink>
+                                <ResponsiveNavLink as="button" class="font-semibold">Sair</ResponsiveNavLink>
                             </form>
 
                             <!-- Team Management -->
@@ -192,9 +192,9 @@ const logout = () => {
                                 <div class="block px-4 py-2 text-xs text-gray-400">Gerenciar Equipe</div>
 
                                 <!-- Team Settings -->
-                                <ResponsiveNavLink :href="route('teams.show', $page.props.auth.user.current_team)" :active="route().current('teams.show')">Configurações da Equipe</ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('teams.show', $page.props.auth.user.current_team)" :active="route().current('teams.show')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('teams.show')}">Configurações da Equipe</ResponsiveNavLink>
 
-                                <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')" :active="route().current('teams.create')">Criar Nova Equipe</ResponsiveNavLink>
+                                <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')" :active="route().current('teams.create')" class="font-semibold" v-bind:class="{'text-blue-600': route().current('teams.create')}">Criar Nova Equipe</ResponsiveNavLink>
 
                                 <!-- Team Switcher -->
                                 <template v-if="$page.props.auth.user.all_teams.length > 1">
@@ -204,7 +204,7 @@ const logout = () => {
 
                                     <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">
                                         <form @submit.prevent="switchToTeam(team)">
-                                            <ResponsiveNavLink as="button">
+                                            <ResponsiveNavLink as="button" class="font-semibold">
                                                 <div class="flex items-center">
                                                     <svg v-if="team.id == $page.props.auth.user.current_team_id" class="mr-2 h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -222,7 +222,7 @@ const logout = () => {
             </nav>
 
             <!-- Page Heading -->
-            <header v-if="$slots.header" :class="{'dark:bg-gray-800 dark:text-white': $page.props.user.preferredTheme !== 'dark', 'bg-white text-gray-900': $page.props.user.preferredTheme === 'dark'}">
+            <header v-if="$slots.header" :class="{'dark:bg-gray-800/50 dark:text-white': $page.props.user.preferredTheme !== 'dark', 'bg-white/50 text-gray-900': $page.props.user.preferredTheme === 'dark'}">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>

@@ -91,9 +91,8 @@ const displayableRole = (role) => {
 </script>
 
 <template>
-    <div class="dark:bg-gray-800 bg-white text-gray-900 dark:text-white">
+    <div  class="text-gray-900 dark:text-white">
         <div v-if="userPermissions.canAddTeamMembers">
-            <SectionBorder />
 
             <!-- Add Team Member -->
             <FormSection @submitted="addTeamMember">

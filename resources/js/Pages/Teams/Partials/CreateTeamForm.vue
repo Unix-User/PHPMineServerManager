@@ -19,7 +19,7 @@ const createTeam = () => {
 </script>
 
 <template>
-    <FormSection @submitted="createTeam" class="dark:bg-gray-800 bg-white">
+    <FormSection @submitted="createTeam">
         <template #title>
             Detalhes da Equipe
         </template>
