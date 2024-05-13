@@ -126,7 +126,7 @@ export default {
             'border border-gray-300': !isDarkMode.value,
             'border border-gray-700': isDarkMode.value,
             'bg-white': !isDarkMode.value,
-            'bg-gray-800 text-white': isDarkMode.value
+            'bg-gray-800': isDarkMode.value
         }));
 
         const messageContainerClasses = computed(() => ({
