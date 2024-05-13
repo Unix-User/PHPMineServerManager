@@ -133,6 +133,18 @@ Route::middleware([
         'destroy' => 'assinatura.vip.delete',
     ]);
 
+    Route::prefix('discord')->group(function () {
+        Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
+        Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
+        Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
+        Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
+        Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
+        Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
+        Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
+        Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
+        Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
+    });
+    
     Route::prefix('api')->group(function () {
         Route::get('/get-latest-chats', [JsonApiReloadedController::class, 'getLatestChatsWithLimit'])->name('api.get-latest-chats');
         Route::post('/execute-command', [JsonApiReloadedController::class, 'runCommand'])->name('api.execute-command');
@@ -143,14 +155,3 @@ Route::middleware([
     });
 });
 
-Route::prefix('discord')->group(function () {
-    Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
-    Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
-    Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
-    Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
-    Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
-    Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
-    Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
-    Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
-    Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
-});
