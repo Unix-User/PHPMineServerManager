@@ -57,7 +57,7 @@ defineProps({
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                     <a
                         href="http://minecraft.udianix.com.br/rules"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -68,6 +68,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 576 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -93,7 +94,7 @@ defineProps({
 
                     <a
                         href="http://minecraft.udianix.com.br/factionCommands"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -104,6 +105,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 512 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -131,7 +133,7 @@ defineProps({
                     <a
                         href="https://minecraft.udianix.com.br/dynmap/"
                         target="_blank"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -142,6 +144,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 576 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -170,7 +173,7 @@ defineProps({
 
                     <a
                         href="http://minecraft.udianix.com.br/donations"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -181,6 +184,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 576 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -207,7 +211,7 @@ defineProps({
 
                     <a
                         href="http://minecraft.udianix.com.br"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -218,6 +222,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 576 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -243,7 +248,7 @@ defineProps({
 
                     <a
                         href="https://github.com/Unix-User/PhPMineServerManager"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
+                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
                     >
                         <div>
                             <div class="flex items-center">
@@ -254,6 +259,7 @@ defineProps({
                                         xmlns="http://www.w3.org/2000/svg"
                                         height="1em"
                                         viewBox="0 0 496 512"
+                                        :fill="darkMode ? '#000000' : '#FFFFFF'"
                                     >
                                         <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -304,6 +310,7 @@ defineProps({
                                 xmlns="http://www.w3.org/2000/svg"
                                 height="1em"
                                 viewBox="0 0 512 512"
+                                :fill="darkMode ? '#000000' : '#FFFFFF'"
                             >
                                 <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                 <path

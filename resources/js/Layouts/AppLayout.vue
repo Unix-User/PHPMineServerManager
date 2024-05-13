@@ -222,7 +222,7 @@ const logout = () => {
             </nav>
 
             <!-- Page Heading -->
-            <header v-if="$slots.header" :class="{'dark:bg-gray-800/50 dark:text-white': $page.props.user.preferredTheme !== 'dark', 'bg-white/50 text-gray-900': $page.props.user.preferredTheme === 'dark'}">
+            <header v-if="$slots.header" :class="{'dark:bg-gray-800/80 dark:text-white': $page.props.user.preferredTheme !== 'dark', 'bg-white/80 text-gray-900': $page.props.user.preferredTheme === 'dark'}">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
