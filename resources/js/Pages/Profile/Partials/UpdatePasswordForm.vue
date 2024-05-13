@@ -38,7 +38,7 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <FormSection @submitted="updatePassword" class="dark:bg-gray-800 bg-white">
+    <FormSection @submitted="updatePassword">
         <template #title>
             Atualizar Senha
         </template>
