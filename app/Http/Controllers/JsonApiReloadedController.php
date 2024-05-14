@@ -24,12 +24,30 @@ class JsonApiReloadedController extends Controller
         return $this->jsonApiResponse('runConsoleCommand', ['command' => $request->input('command')]);
     }
 
-    public function verifyApiStatus()
+    public function getJavaMemoryUsage()
     {
-        $response = $this->jsonApiService->isConnected() ? 
-                    ['status' => 'success', 'message' => 'API connection is active.'] : 
-                    ['status' => 'failure', 'message' => 'Unable to connect to API.'];
-        return response()->json($response, $response['status'] === 'success' ? 200 : 500);
+        return $this->handleApiResponse($this->jsonApiService->getJavaMemoryUsage());
+    }
+    private function handleApiResponse($apiResponse)
+    {
+        if (isset($apiResponse['error'])) {
+            return [
+                'result' => 'error',
+                'source' => $apiResponse['source'],
+                'is_success' => false,
+                'error' => [
+                    'code' => $apiResponse['error']['code'],
+                    'message' => $apiResponse['error']['message']
+                ]
+            ];
+        } else {
+            return [
+                'result' => 'success',
+                'success' => $apiResponse,
+                'source' => $apiResponse,
+                'is_success' => true
+            ];
+        }
     }
 
     public function teleportPlayer(Request $request)
@@ -57,6 +75,50 @@ class JsonApiReloadedController extends Controller
             'worldName' => $request->input('worldName'), 
             'time' => $request->input('time')
         ]);
+    }
+
+    public function getServerStats()
+    {
+        return $this->jsonApiResponse('getServerStats');
+    }
+
+    public function getServerVersion()
+    {
+        return $this->jsonApiResponse('getServerVersion');
+    }
+
+    public function banPlayer(Request $request)
+    {
+        $playerName = $request->input('playerName');
+        return $this->jsonApiResponse('banPlayer', ['playerName' => $playerName]);
+    }
+
+    public function unbanPlayer(Request $request)
+    {
+        $playerName = $request->input('playerName');
+        return $this->jsonApiResponse('unbanPlayer', ['playerName' => $playerName]);
+    }
+
+    public function getOnlinePlayersDetails()
+    {
+        return $this->jsonApiResponse('getOnlinePlayersDetails');
+    }
+
+    public function getPlayerCount()
+    {
+        return $this->jsonApiResponse('getPlayerCount');
+    }
+
+    public function getOnlinePlayerNamesInWorld(Request $request)
+    {
+        $worldName = $request->input('worldName');
+        return $this->jsonApiResponse('getOnlinePlayerNamesInWorld', ['worldName' => $worldName]);
+    }
+
+    public function checkServerConnection()
+    {
+        $connectionStatus = $this->jsonApiService->checkConnection();
+        return response()->json(['is_connected' => $connectionStatus], $connectionStatus ? 200 : 503);
     }
 
     private function jsonApiResponse($method, $parameters = [], $checkEmpty = false)

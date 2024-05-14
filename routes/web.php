@@ -9,6 +9,7 @@ use App\Http\Controllers\UpdatePostsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DiscordController;
@@ -153,13 +154,103 @@ Route::middleware([
         // Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
     });
     
-    // Route::prefix('api')->group(function () {
-    //     Route::get('/get-latest-chats', [JsonApiReloadedController::class, 'getLatestChatsWithLimit'])->name('api.get-latest-chats');
-    //     Route::post('/execute-command', [JsonApiReloadedController::class, 'runCommand'])->name('api.execute-command');
-    //     Route::get('/check-connection', [JsonApiReloadedController::class, 'verifyApiStatus'])->name('api.check-connection');
-    //     Route::post('/teleport-player', [JsonApiReloadedController::class, 'teleportPlayer'])->name('api.teleport-player');
-    //     Route::post('/give-player-item', [JsonApiReloadedController::class, 'givePlayerItem'])->name('api.give-player-item');
-    //     Route::post('/set-world-time', [JsonApiReloadedController::class, 'setWorldTime'])->name('api.set-world-time');
-    // });
+    Route::prefix('api')->group(function () {
+        Route::get('/get-latest-chats', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->getLatestChatsWithLimit();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.get-latest-chats');
+
+        Route::post('/execute-command', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->runCommand();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.execute-command');
+
+        Route::get('/check-connection', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->checkServerConnection();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.check-connection');
+
+        Route::post('/teleport-player', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->teleportPlayer();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.teleport-player');
+
+        Route::post('/give-player-item', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->givePlayerItem();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.give-player-item');
+
+        Route::post('/set-world-time', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->setWorldTime();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.set-world-time');
+
+        Route::get('/server-version', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->getServerVersion();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.server-version');
+
+        Route::post('/ban-player', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->banPlayer();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.ban-player');
+
+        Route::post('/unban-player', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->unbanPlayer();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.unban-player');
+
+        Route::post('/online-players', function (Request $request) {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                $worldName = $request->input('worldName');
+                return app(JsonApiReloadedController::class)->getOnlinePlayerNamesInWorld($worldName);
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.online-players');
+
+        Route::get('/player-count', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->getPlayerCount();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.player-count');
+
+        Route::get('/get-java-memory-usage', function () {
+            if (Auth::user()->roles->pluck('name')->contains('admin')) {
+                return app(JsonApiReloadedController::class)->getJavaMemoryUsage();
+            } else {
+                abort(403, 'Unauthorized');
+            }
+        })->name('api.getJavaMemoryUsage');
+    });
 });
 

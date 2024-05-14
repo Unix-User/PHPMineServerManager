@@ -4,26 +4,38 @@ import { ref, reactive } from "vue";
 import axios from "axios";
 
 const serverStatus = reactive({
-    javaVersion: "",
-    isProgramRunning: false,
     serverVersion: "",
+    isServerOnline: false,
     jogadores: "",
-    maxJogadores: "",
+    maxJogadores: 20,
     online: [],
     isLoading: true,
 });
+const fetchServerStatus = async () => {
+    try {
+        const [checkConnectionResponse, playerCountResponse, serverVersionResponse, getJavaMemoryUsageResponse] = await Promise.all([
+            axios.get("/api/check-connection"),
+            axios.get("/api/player-count"),
+            axios.get("/api/server-version"),
+            axios.get("/api/get-java-memory-usage")
+        ]);
 
-axios
-    .get("/status")
-    .then((response) => {
-        if (response.data) {
-            Object.assign(serverStatus, response.data);
-            serverStatus.isLoading = false;
-        }
-    })
-    .catch((error) => {
+        console.log("Server Online Status:", checkConnectionResponse.data.is_connected);
+        console.log("Server Version:", serverVersionResponse.data[0].success);
+        console.log("Max Jogadores:", playerCountResponse.data[0].success);
+        console.log("Memory Usage:", getJavaMemoryUsageResponse.data.success);
+        serverStatus.getJavaMemoryUsage = Math.round(getJavaMemoryUsageResponse.data.success[0].success) + " MB";
+        serverStatus.serverVersion = serverVersionResponse.data[0].success;
+        serverStatus.isServerOnline = checkConnectionResponse.data.is_connected;
+        serverStatus.jogadores = playerCountResponse.data[0].success;
+        serverStatus.isLoading = false;
+    } catch (error) {
         console.error(error);
-    });
+        serverStatus.isLoading = false;
+    }
+};
+
+fetchServerStatus();
 </script>
 
 <template>
@@ -37,7 +49,7 @@ axios
         </h1>
         <p class="mt-6 text-gray-500 dark:text-gray-300 leading-relaxed">
             Esta é sua dashboard personalizada. Aqui, você pode monitorar o
-            status do servidor, a versão do Java, o estado do serviço e a
+            status do servidor, a versão do servidor, o estado do serviço e a
             quantidade de jogadores online. Explore e utilize todas as
             funcionalidades disponíveis.
         </p>
@@ -45,29 +57,29 @@ axios
             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6 text-gray-500 dark:text-gray-300 leading-relaxed"
         >
             <div class="badge bg-blue-500 text-white px-3 py-1 rounded-full">
-                Java Version:
+                Ver.:
                 {{
                     serverStatus.isLoading
                         ? "Carregando..."
-                        : serverStatus.javaVersion || "Indisponível"
+                        : serverStatus.serverVersion || "Indisponível"
                 }}
             </div>
             <div class="badge bg-green-500 text-white px-3 py-1 rounded-full">
-                Serviço:
+                Status do servidor:
                 {{
                     serverStatus.isLoading
                         ? "Carregando..."
-                        : serverStatus.isProgramRunning
+                        : serverStatus.isServerOnline
                         ? "Ativo"
                         : "Inativo"
                 }}
             </div>
             <div class="badge bg-yellow-500 text-white px-3 py-1 rounded-full">
-                Versão do Servidor:
+                Uso de Memoria:
                 {{
                     serverStatus.isLoading
                         ? "Carregando..."
-                        : serverStatus.serverVersion || "Indisponível"
+                        : serverStatus.getJavaMemoryUsage || "Indisponível"
                 }}
             </div>
             <div

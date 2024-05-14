@@ -3,10 +3,15 @@
 namespace App\Services;
 
 /**
- * An optimized PHP class for accessing Minecraft servers with Bukkit and the JSONAPI plugin, aligned with JSONAPI-RELOADED documentation.
+ * A PHP class for accessing Minecraft servers that have Bukkit with the JSONAPI plugin installed.
  * 
- * This class enhances server interactions by streamlining key and URL generation, decoding JSON responses more efficiently, and ensuring compatibility with JSONAPI-RELOADED standards.
- * Additionally, it includes methods for managing players, worlds, plugins, permissions, chat, and server control.
+ * This class handles everything from key creation to URL creation to actually returning the decoded JSON as an associative array.
+ * 
+ * @author Alec Gorge <alecgorge@gmail.com>
+ * @version Alpha 5
+ * @link http://github.com/alecgorge/JSONAPI
+ * @package JSONAPI
+ * @since Alpha 5
  */
 class JSONAPI {
     private $host;
@@ -17,82 +22,100 @@ class JSONAPI {
     private $timeout;
     private $salt;
 
+    /**
+     * Constructor to initialize the JSONAPI with server details from environment variables.
+     */
+    public function __construct() {
+        $this->host = env('MC_SERVER_HOST', 'localhost');
+        $this->port = env('MC_SERVER_PORT', 20059);
+        $this->username = env('MC_SERVER_USERNAME', 'admin');
+        $this->password = env('MC_SERVER_PASSWORD', 'password');
+        $this->salt = env('MC_SERVER_SALT', '');
+        $this->timeout = 10; // Default timeout can be adjusted or also set from env if needed
+    }
+
     // Constructor and other existing methods remain unchanged...
 
     /**
-     * Bans a player by name.
+     * System information retrieval methods.
      */
-    public function banPlayer($playerName) {
-        return $this->call('ban', [$playerName]);
+    public function getCpuCores() {
+        return $this->errorResponse('system.getCpuCores');
+    }
+
+    public function getCpuCurrentFreq($includeTurbo) {
+        return $this->errorResponse('system.getCpuCurrentFreq');
+    }
+
+    public function getCpuFreq($includeTurbo) {
+        return $this->errorResponse('system.getCpuFreq');
+    }
+
+    public function getCpuModel() {
+        return $this->errorResponse('system.getCpuModel');
+    }
+
+    public function getCpuThreads() {
+        return $this->errorResponse('system.getCpuThreads');
+    }
+
+    public function getDiskFreeSpace() {
+        return $this->call('system.getDiskFreeSpace', []);
+    }
+
+    public function getDiskSize() {
+        return $this->call('system.getDiskSize', []);
+    }
+
+    public function getDiskUsage() {
+        return $this->call('system.getDiskUsage', []);
+    }
+
+    public function getHostMaxMemory($includeSwap) {
+        return $this->errorResponse('system.getHostMaxMemory');
+    }
+
+    public function getHostMemory($includeSwap) {
+        return $this->errorResponse('system.getHostMemory');
+    }
+
+    public function getJavaMemoryTotal() {
+        return $this->call('system.getJavaMemoryTotal', []);
+    }
+
+    public function getJavaMemoryUsage() {
+        return $this->call('system.getJavaMemoryUsage', []);
+    }
+
+    public function getServerClockDebug() {
+        return $this->call('system.getServerClockDebug', []);
     }
 
     /**
-     * Unbans a player by name.
+     * Retrieves the current player count from the server.
      */
-    public function unbanPlayer($playerName) {
-        return $this->call('unban', [$playerName]);
+    public function getPlayerCount() {
+        return $this->call('getPlayerCount', []);
     }
 
     /**
-     * Sets the world time.
+     * Retrieves the server version.
      */
-    public function setWorldTime($worldName, $time) {
-        return $this->call('world.setWorldTime', [$worldName, $time]);
+    public function getServerVersion() {
+        return $this->call('getServerVersion', []);
     }
 
     /**
-     * Enables a plugin by name.
+     * Retrieves the names of online players in a specific world.
      */
-    public function enablePlugin($pluginName) {
-        return $this->call('enablePlugin', [$pluginName]);
-    }
-
-    /**
-     * Disables a plugin by name.
-     */
-    public function disablePlugin($pluginName) {
-        return $this->call('disablePlugin', [$pluginName]);
-    }
-
-    /**
-     * Adds a permission to a player.
-     */
-    public function addPlayerPermission($playerName, $permissionNode) {
-        return $this->call('permissions.addPermission', [$playerName, $permissionNode, true]);
-    }
-
-    /**
-     * Removes a permission from a player.
-     */
-    public function removePlayerPermission($playerName, $permissionNode) {
-        return $this->call('permissions.removePermission', [$playerName, $permissionNode]);
-    }
-
-    /**
-     * Sends a global message to all players.
-     */
-    public function sendGlobalMessage($message) {
-        return $this->call('broadcast', [$message]);
-    }
-
-    /**
-     * Sets a player's chat prefix.
-     */
-    public function setPlayerPrefix($worldName, $playerName, $prefix) {
-        return $this->call('chat.setPlayerPrefix', [$worldName, $playerName, $prefix]);
-    }
-
-    /**
-     * Restarts the server.
-     */
-    public function restartServer() {
-        return $this->call('remotetoolkit.restartServer', []);
+    public function getOnlinePlayerNamesInWorld($worldName) {
+        return $this->call('getOnlinePlayerNamesInWorld', ['worldName' => $worldName]);
     }
 
     /**
      * A generic method to perform API calls.
      */
-    private function call($method, $args = []) {
+    public function call($method, $args = []) {
         $json = $this->constructCall($method, $args);
         $url = $this->makeURL($method, $args);
         return $this->curl($url);
@@ -139,5 +162,30 @@ class JSONAPI {
         }
     }
 
+    /**
+     * Checks if the server port is open to ensure connection is possible.
+     */
+    public function checkConnection() {
+        $connection = @fsockopen($this->host, $this->port);
+        if ($connection) {
+            fclose($connection);
+            return true;
+        }
+        return false;
+    }
+
+    private function errorResponse($method) {
+        return [
+            'result' => 'error',
+            'source' => $method,
+            'is_success' => false,
+            'error' => [
+                'code' => 7,
+                'message' => "The method '$method' does not exist!"
+            ]
+        ];
+    }
+
     // Other existing methods remain unchanged...
 }
+
