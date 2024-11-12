@@ -2,8 +2,11 @@
 
 [![Laravel Tests](https://github.com/Unix-User/PHPMineServerManager/actions/workflows/laravel.yml/badge.svg)](https://github.com/Unix-User/PHPMineServerManager/actions/workflows/laravel.yml)
 [![License](https://img.shields.io/github/license/Unix-User/PHPMineServerManager)](https://github.com/Unix-User/PHPMineServerManager/blob/main/LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/Unix-User/PHPMineServerManager)](https://github.com/Unix-User/PHPMineServerManager/releases)
-[![PHP Version](https://img.shields.io/packagist/php-v/Unix-User/PHPMineServerManager)](https://packagist.org/packages/Unix-User/PHPMineServerManager)
+[![Laravel Version](https://img.shields.io/badge/Laravel-v10-FF2D20?logo=laravel)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php)](https://php.net)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Unix-User/PHPMineServerManager)](https://github.com/Unix-User/PHPMineServerManager/commits)
+[![GitHub issues](https://img.shields.io/github/issues/Unix-User/PHPMineServerManager)](https://github.com/Unix-User/PHPMineServerManager/issues)
+[![Maintainability](https://img.shields.io/badge/maintainability-A-brightgreen)](https://github.com/Unix-User/PHPMineServerManager)
 
 <p align="center"><a href="https://minecraft.udianix.com.br" target="_blank"><img src="https://github.com/Unix-User/PHPMineServerManager/assets/38821945/b2298d64-d45a-4f33-9c96-83b9ef1f86fb" />
 </a></p>
