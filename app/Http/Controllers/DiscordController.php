@@ -53,7 +53,7 @@ class DiscordController extends Controller
     {
         try {
             $ollama_response = $ollamaService->generate(
-                env('OLLAMA_MODEL', 'llama2'),
+                env('OLLAMA_MODEL', 'llama3.2'),
                 $content
             );
             $this->sendBotMessage($ollama_response['response']);
@@ -111,7 +111,7 @@ class DiscordController extends Controller
             
             try {
                 $response = $ollamaService->generate([
-                    'model' => 'llama3.1',
+                    'model' => env('OLLAMA_MODEL', 'llama3.2'),
                     'prompt' => "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$message['content']}",
                     'stream' => false,
                     'system' => "You are Mr. Robot, a friendly AI assistant."
