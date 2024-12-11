@@ -14,7 +14,6 @@ class DiscordController extends Controller
 {
     private $discordToken; // Discord bot token
     private $channelId; // Channel ID
-    private $botChannelId; // Channel ID
     private $updateChannelId; // Channel ID
     private $serverId; // Server ID
     private $headers;
@@ -24,7 +23,6 @@ class DiscordController extends Controller
     {
         $this->discordToken = env('DISCORD_TOKEN');
         $this->channelId = env('DISCORD_CHANNEL_ID');
-        $this->botChannelId = env('DISCORD_BOT_CHANNEL_ID');
         $this->updateChannelId = env('DISCORD_UPDATE_CHANNEL_ID');
         $this->serverId = env('DISCORD_SERVER_ID');
         $this->headers = [
@@ -85,7 +83,48 @@ class DiscordController extends Controller
         RateLimiter::hit('check_discord_messages');
 
         $this->processMessages($this->channelId, $ollamaService);
-        $this->processMessages($this->botChannelId, $ollamaService);
+        $this->getDirectMessages($ollamaService);
+    }
+
+    private function getDirectMessages(OllamaService $ollamaService)
+    {
+        if (RateLimiter::tooManyAttempts('check_discord_dm', 60)) {
+            Log::warning('Rate limit exceeded for Discord API calls');
+            return;
+        }
+
+        RateLimiter::hit('check_discord_dm');
+
+        // Obtem canais de DM do bot
+        $dmChannels = $this->sendRequest('GET', "/users/@me/channels");
+
+        foreach ($dmChannels as $dmChannel) {
+            if ($dmChannel['type'] !== 1) { // Verifica se é um canal de DM (1 = DMChannel)
+                continue;
+            }
+
+            // Obtem mensagens do canal de DM
+            $messages = $this->sendRequest('GET', "/channels/{$dmChannel['id']}/messages");
+
+            foreach ($messages as $message) {
+                // Ignora mensagens enviadas pelo próprio bot
+                if ($message['author']['id'] === $this->mrRobotId) {
+                    continue;
+                }
+
+                // Responde diretamente ao usuário
+                $this->sendMessageToChannel($dmChannel['id'], "Olá, você disse: {$message['content']}");
+            }
+        }
+    }
+
+    private function sendMessageToChannel($channelId, $content)
+    {
+        $response = $this->sendRequest('POST', "/channels/{$channelId}/messages", [
+            'content' => $content,
+        ]);
+
+        return $response;
     }
 
     private function processMessages($channelId, OllamaService $ollamaService)
@@ -149,9 +188,6 @@ class DiscordController extends Controller
 
     private function handleDirectMessageResponse($message, OllamaService $ollamaService)
     {
-        // Similar logic to handle direct messages in the bot channel
-        // You can reuse the same generation logic as in handleMentionResponse
-        // but send the response to the bot channel instead.
         Log::info('Mensagem direta recebida', [
             'message_id' => $message['id'],
             'author' => $message['author']['username'],
@@ -167,7 +203,7 @@ class DiscordController extends Controller
             ]);
 
             if (isset($response['response'])) {
-                $this->sendBotMessage($response['response'], $this->botChannelId);
+                $this->sendBotMessage($response['response'], $this->channelId);
                 Log::info('Resposta enviada ao canal do bot', [
                     'message_id' => $message['id'],
                     'response' => $response['response']
@@ -181,7 +217,7 @@ class DiscordController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.', $this->botChannelId);
+            $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.', $this->channelId);
             $this->notifyAdminOfError($e);
         }
     }
@@ -220,7 +256,6 @@ class DiscordController extends Controller
     {
         return $this->sendRequest('DELETE', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
     }
-
 
     // login social
     public function redirectToDiscord()
