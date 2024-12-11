@@ -97,7 +97,11 @@ class DiscordController extends Controller
         foreach ($response as $message) {
             if (!in_array($message['id'], $processedMessages)) {
                 if ($message['author']['id'] !== $this->mrRobotId) {
-                    $this->handleMrRobotMention($message, $ollamaService);
+                    if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
+                        $this->handleMentionResponse($message, $ollamaService);
+                    } else {
+                        $this->handleDirectMessageResponse($message, $ollamaService);
+                    }
                 }
                 $processedMessages[] = $message['id'];
             }
@@ -107,50 +111,78 @@ class DiscordController extends Controller
         Cache::put('processed_discord_messages_' . $channelId, $processedMessages, now()->addDay());
     }
 
-    private function handleMrRobotMention($message, OllamaService $ollamaService)
+    private function handleMentionResponse($message, OllamaService $ollamaService)
     {
-        if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
-            Log::info('Mr. Robot mencionado', [
-                'message_id' => $message['id'],
-                'author' => $message['author']['username'],
-                'content' => $message['content']
+        Log::info('Mr. Robot mencionado', [
+            'message_id' => $message['id'],
+            'author' => $message['author']['username'],
+            'content' => $message['content']
+        ]);
+        
+        try {
+            $response = $ollamaService->generate([
+                'model' => env('OLLAMA_MODEL', 'llama3.2'),
+                'prompt' => "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$message['content']}",
+                'stream' => false,
+                'system' => "You are Mr. Robot, a friendly AI assistant."
             ]);
-            
-            try {
-                $response = $ollamaService->generate([
-                    'model' => env('OLLAMA_MODEL', 'llama3.2'),
-                    'prompt' => "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$message['content']}",
-                    'stream' => false,
-                    'system' => "You are Mr. Robot, a friendly AI assistant."
-                ]);
 
-                if (isset($response['response'])) {
-                    // Process the response
-                    $response = $response['response'];
-                    
-                    // Limitar a resposta a 2000 caracteres (limite do Discord)
-                    if (strlen($response) > 2000) {
-                        $response = substr($response, 0, 1997) . '...';
-                    }
-                    
-                    $this->sendBotMessage($response);
-                    
-                    Log::info('Resposta enviada', [
-                        'message_id' => $message['id'],
-                        'response' => $response
-                    ]);
-                } else {
-                    throw new \Exception("Resposta do Ollama não contém a chave 'response'");
-                }
-            } catch (\Exception $e) {
-                Log::error('Erro ao gerar resposta', [
+            if (isset($response['response'])) {
+                $this->sendBotMessage($response['response'], $this->channelId);
+                Log::info('Resposta enviada', [
                     'message_id' => $message['id'],
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+                    'response' => $response['response']
                 ]);
-                $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.');
-                $this->notifyAdminOfError($e);
+            } else {
+                throw new \Exception("Resposta do Ollama não contém a chave 'response'");
             }
+        } catch (\Exception $e) {
+            Log::error('Erro ao gerar resposta', [
+                'message_id' => $message['id'],
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.', $this->channelId);
+            $this->notifyAdminOfError($e);
+        }
+    }
+
+    private function handleDirectMessageResponse($message, OllamaService $ollamaService)
+    {
+        // Similar logic to handle direct messages in the bot channel
+        // You can reuse the same generation logic as in handleMentionResponse
+        // but send the response to the bot channel instead.
+        Log::info('Mensagem direta recebida', [
+            'message_id' => $message['id'],
+            'author' => $message['author']['username'],
+            'content' => $message['content']
+        ]);
+        
+        try {
+            $response = $ollamaService->generate([
+                'model' => env('OLLAMA_MODEL', 'llama3.2'),
+                'prompt' => "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$message['content']}",
+                'stream' => false,
+                'system' => "You are Mr. Robot, a friendly AI assistant."
+            ]);
+
+            if (isset($response['response'])) {
+                $this->sendBotMessage($response['response'], $this->botChannelId);
+                Log::info('Resposta enviada ao canal do bot', [
+                    'message_id' => $message['id'],
+                    'response' => $response['response']
+                ]);
+            } else {
+                throw new \Exception("Resposta do Ollama não contém a chave 'response'");
+            }
+        } catch (\Exception $e) {
+            Log::error('Erro ao gerar resposta', [
+                'message_id' => $message['id'],
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.', $this->botChannelId);
+            $this->notifyAdminOfError($e);
         }
     }
 
