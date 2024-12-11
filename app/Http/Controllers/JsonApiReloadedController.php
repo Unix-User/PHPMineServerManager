@@ -121,6 +121,23 @@ class JsonApiReloadedController extends Controller
         return response()->json(['is_connected' => $connectionStatus], $connectionStatus ? 200 : 503);
     }
 
+    public function getPlayerInventory($request)
+    {
+        return $this->jsonApiResponse('getPlayerInventory', ["$request"]);
+    }
+
+    public function getPlayers()
+    {
+        return $this->jsonApiResponse('getPlayers');
+    }
+    public function getPlayerNames()
+    {
+        return $this->jsonApiResponse('getPlayerNames');
+    }
+    public function getPlayerEnderchest($request)
+    {
+        return $this->jsonApiResponse('getPlayerEnderchest', ["$request"]);
+    }
     private function jsonApiResponse($method, $parameters = [], $checkEmpty = false)
     {
         if ($checkEmpty && in_array(null, $parameters, true)) {

@@ -1,6 +1,7 @@
 <script setup>
 import AppLayout from "@/Layouts/AppLayout.vue";
 import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
+import InventoryForm from "@/Pages/Profile/Partials/InventoryForm.vue";
 import LogoutOtherBrowserSessionsForm from "@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.vue";
 import SectionBorder from "@/Components/SectionBorder.vue";
 import TwoFactorAuthenticationForm from "@/Pages/Profile/Partials/TwoFactorAuthenticationForm.vue";
@@ -29,6 +30,12 @@ defineProps({
                     <UpdateProfileInformationForm
                         :user="$page.props.auth.user"
                     />
+
+                    <SectionBorder />
+                </div>
+
+                <div v-if="$page.props.jetstream.canUpdatePassword">
+                    <InventoryForm :user="$page.props.auth.user" class="mt-10 sm:mt-0" />
 
                     <SectionBorder />
                 </div>

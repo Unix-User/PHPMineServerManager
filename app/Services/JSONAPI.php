@@ -111,7 +111,41 @@ class JSONAPI {
     public function getOnlinePlayerNamesInWorld($worldName) {
         return $this->call('getOnlinePlayerNamesInWorld', ['worldName' => $worldName]);
     }
-
+    
+    /**
+     * Gets an array of Player objects that represent all of the players on the server.
+     *
+     * @return array An array of Player objects
+     */
+    public function getPlayers() {
+        return $this->call('getPlayers', []);
+    }
+    /**
+     * Retrieves an array of the names of all the players currently on the server.
+     *
+     * @return string[] The players' names.
+     */
+    public function getPlayerNames() {
+        return $this->call('getPlayerNames', []);
+    }
+    /**
+     * Get inventory of a player online/offline.
+     * 
+     * @param string $playerName Players' name
+     * @return array Inventory object representing the specified person.
+     */
+    public function getPlayerInventory($playerName) {
+        return $this->call('getPlayerInventory', ["$playerName"]);
+    }
+    /**
+     * Get enderchest of a player online/offline.
+     * 
+     * @param string $playerName Players' name
+     * @return array Enderchest object representing the specified person.
+     */
+        public function getPlayerEnderchest($playerName) {
+        return $this->call('getPlayerEnderchest', ["$playerName"]);
+    }
     /**
      * A generic method to perform API calls.
      */
