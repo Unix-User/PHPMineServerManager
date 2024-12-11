@@ -99,7 +99,7 @@ class DiscordController extends Controller
 
         $dmChannel = $this->discordService->createDirectMessageChannel($this->mrRobotId);
 
-        if ($dmChannel['type'] === 1) {
+        if (isset($dmChannel['type']) && $dmChannel['type'] === 1) {
             $messages = $this->discordService->getChannelMessages($dmChannel['id']);
 
             if (isset($messages['message'])) {
@@ -295,6 +295,11 @@ class DiscordController extends Controller
         $this->verifyWebhookSignature($signature, $request->getContent());
 
         $payload = $request->all();
+
+        if (!isset($payload['type'])) {
+            Log::error('Payload does not contain type', ['payload' => $payload]);
+            return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
+        }
 
         switch ($payload['type']) {
             case 1: 
