@@ -13,10 +13,10 @@ use App\Services\DiscordBotService;
 
 class DiscordController extends Controller
 {
-    private $discordToken; // Discord bot token
-    private $channelId; // Channel ID
-    private $updateChannelId; // Channel ID
-    private $serverId; // Server ID
+    private $discordToken; 
+    private $channelId; 
+    private $updateChannelId; 
+    private $serverId; 
     private $headers;
     private $mrRobotId;
     protected $discordService;
@@ -60,7 +60,6 @@ class DiscordController extends Controller
                 $content
             );
             $this->sendBotMessage($ollama_response['response']);
-            
             Log::info('Resposta do bot enviada', ['response' => $ollama_response['response']]);
         } catch (\Exception $e) {
             Log::error('Erro ao gerar resposta do bot', ['error' => $e->getMessage()]);
@@ -98,36 +97,24 @@ class DiscordController extends Controller
 
         RateLimiter::hit('check_discord_dm');
 
-        // Obtem canais de DM do bot
-        $dmChannels = $this->sendRequest('GET', "/users/@me/channels");
+        $dmChannel = $this->discordService->createDirectMessageChannel($this->mrRobotId);
 
-        foreach ($dmChannels as $dmChannel) {
-            if ($dmChannel['type'] !== 1) { // Verifica se é um canal de DM (1 = DMChannel)
-                continue;
+        if ($dmChannel['type'] === 1) {
+            $messages = $this->discordService->getChannelMessages($dmChannel['id']);
+
+            if (isset($messages['message'])) {
+                Log::error('Erro ao obter mensagens do canal de DM: ' . $messages['message']);
+                return; // Exit if there's an error
             }
 
-            // Obtem mensagens do canal de DM
-            $messages = $this->sendRequest('GET', "/channels/{$dmChannel['id']}/messages");
-
             foreach ($messages as $message) {
-                // Ignora mensagens enviadas pelo próprio bot
                 if ($message['author']['id'] === $this->mrRobotId) {
                     continue;
                 }
 
-                // Responde diretamente ao usuário
-                $this->sendMessageToChannel($dmChannel['id'], "Olá, você disse: {$message['content']}");
+                $this->discordService->sendMessage($dmChannel['id'], "Olá, você disse: {$message['content']}");
             }
         }
-    }
-
-    private function sendMessageToChannel($channelId, $content)
-    {
-        $response = $this->sendRequest('POST', "/channels/{$channelId}/messages", [
-            'content' => $content,
-        ]);
-
-        return $response;
     }
 
     private function processMessages($channelId, OllamaService $ollamaService)
@@ -137,13 +124,11 @@ class DiscordController extends Controller
         $processedMessages = Cache::get('processed_discord_messages_' . $channelId, []);
         
         foreach ($response as $message) {
-            if (!in_array($message['id'], $processedMessages)) {
-                if ($message['author']['id'] !== $this->mrRobotId) {
-                    if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
-                        $this->handleMentionResponse($message, $ollamaService);
-                    } else {
-                        $this->handleDirectMessageResponse($message, $ollamaService);
-                    }
+            if (!in_array($message['id'], $processedMessages) && $message['author']['id'] !== $this->mrRobotId) {
+                if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
+                    $this->handleMentionResponse($message, $ollamaService);
+                } else {
+                    $this->handleDirectMessageResponse($message, $ollamaService);
                 }
                 $processedMessages[] = $message['id'];
             }
@@ -260,7 +245,6 @@ class DiscordController extends Controller
         return $this->sendRequest('DELETE', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
     }
 
-    // login social
     public function redirectToDiscord()
     {
         return Socialite::driver('discord')->redirect();
@@ -269,7 +253,6 @@ class DiscordController extends Controller
     public function handleDiscordCallback()
     {
         $user = Socialite::driver('discord')->user();
-
         // $user->token
     }
 
@@ -308,21 +291,19 @@ class DiscordController extends Controller
 
     public function handleWebhook(Request $request)
     {
-        // Verificar assinatura do webhook
         $signature = $request->header('X-Discord-Signature');
         $this->verifyWebhookSignature($signature, $request->getContent());
 
         $payload = $request->all();
 
-        // Tipo de evento
         switch ($payload['type']) {
-            case 1: // Ping
+            case 1: 
                 return response()->json(['type' => 1]);
             
-            case 2: // Comando de aplicação
+            case 2: 
                 return $this->handleApplicationCommand($payload);
             
-            case 3: // Componente de mensagem
+            case 3: 
                 return $this->handleMessageComponent($payload);
         }
 
@@ -332,7 +313,6 @@ class DiscordController extends Controller
     protected function verifyWebhookSignature($signature, $payload)
     {
         // Implementar verificação de assinatura
-        // Use a chave secreta do webhook para validar
     }
 
     protected function handleApplicationCommand($payload)

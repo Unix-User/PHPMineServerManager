@@ -5,12 +5,12 @@ namespace App\Services;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class DiscordBotService
 {
     protected $client;
-    protected $botToken;
-    protected $botId;
+    protected $channelId;
 
     public function __construct()
     {
@@ -21,9 +21,7 @@ class DiscordBotService
                 'Content-Type' => 'application/json',
             ]
         ]);
-
-        $this->botToken = config('services.discord.bot_token');
-        $this->botId = config('services.discord.bot_id');
+        $this->channelId = config('services.discord.channel_id');
     }
 
     public function handleDirectMessage($message)
@@ -36,24 +34,28 @@ class DiscordBotService
         }
     }
 
-    protected function createDirectMessageChannel($recipientId)
+    public function createDirectMessageChannel($userId)
     {
-        $response = $this->client->post('users/@me/channels', [
-            'json' => [
-                'recipient_id' => $recipientId
-            ]
+        $response = Http::withHeaders($this->getHeaders())->post("users/{$userId}/channels", [
+            'recipient_id' => $userId,
         ]);
 
-        return json_decode($response->getBody(), true);
+        return $response->json();
+    }
+
+    private function getHeaders()
+    {
+        return [
+            'Authorization' => 'Bot ' . config('services.discord.bot_token'),
+            'Content-Type' => 'application/json',
+        ];
     }
 
     public function sendMessage($channelId, $content)
     {
         try {
             $this->client->post("channels/{$channelId}/messages", [
-                'json' => [
-                    'content' => $content
-                ]
+                'json' => ['content' => $content]
             ]);
         } catch (\Exception $e) {
             Log::error('Erro ao enviar mensagem: ' . $e->getMessage());
@@ -73,7 +75,6 @@ class DiscordBotService
 
         foreach ($messages as $message) {
             if (!in_array($message['id'], $processedMessages)) {
-                // Process the message as needed
                 $processedMessages[] = $message['id'];
             }
         }
