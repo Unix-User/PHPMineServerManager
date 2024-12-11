@@ -36,7 +36,7 @@ class DiscordBotService
 
     public function createDirectMessageChannel($userId)
     {
-        $response = Http::withHeaders($this->getHeaders())->post("users/{$userId}/channels", [
+        $response = Http::withHeaders($this->getHeaders())->post("https://discord.com/api/v10/users/{$userId}/channels", [
             'recipient_id' => $userId,
         ]);
 
