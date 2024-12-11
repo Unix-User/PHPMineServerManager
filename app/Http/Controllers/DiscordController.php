@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Services\OllamaService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
+use App\Services\DiscordBotService;
 
 class DiscordController extends Controller
 {
@@ -18,9 +19,11 @@ class DiscordController extends Controller
     private $serverId; // Server ID
     private $headers;
     private $mrRobotId;
+    protected $discordService;
 
-    public function __construct()
+    public function __construct(DiscordBotService $discordService)
     {
+        $this->discordService = $discordService;
         $this->discordToken = env('DISCORD_TOKEN');
         $this->channelId = env('DISCORD_CHANNEL_ID');
         $this->updateChannelId = env('DISCORD_UPDATE_CHANNEL_ID');
@@ -301,5 +304,44 @@ class DiscordController extends Controller
     {
         // Implemente aqui a lógica para notificar os administradores sobre erros críticos
         // Pode ser via e-mail, Slack, ou outro método de sua escolha
+    }
+
+    public function handleWebhook(Request $request)
+    {
+        // Verificar assinatura do webhook
+        $signature = $request->header('X-Discord-Signature');
+        $this->verifyWebhookSignature($signature, $request->getContent());
+
+        $payload = $request->all();
+
+        // Tipo de evento
+        switch ($payload['type']) {
+            case 1: // Ping
+                return response()->json(['type' => 1]);
+            
+            case 2: // Comando de aplicação
+                return $this->handleApplicationCommand($payload);
+            
+            case 3: // Componente de mensagem
+                return $this->handleMessageComponent($payload);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    protected function verifyWebhookSignature($signature, $payload)
+    {
+        // Implementar verificação de assinatura
+        // Use a chave secreta do webhook para validar
+    }
+
+    protected function handleApplicationCommand($payload)
+    {
+        // Lógica para lidar com comandos de aplicação
+    }
+
+    protected function handleMessageComponent($payload)
+    {
+        // Lógica para lidar com componentes de mensagem
     }
 }

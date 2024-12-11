@@ -53,11 +53,13 @@ return [
         'client_id' => env('DISCORD_CLIENT_ID'),
         'client_secret' => env('DISCORD_CLIENT_SECRET'),
         'redirect' => env('APP_URL') . '/auth/discord/callback',
+        'bot_token' => env('DISCORD_TOKEN'), // Updated to use DISCORD_TOKEN from .env
+        'bot_id' => env('MR_ROBOT_ID'), // Updated to use MR_ROBOT_ID from .env
+        'webhook_secret' => env('DISCORD_WEBHOOK_URL'), // Updated to use DISCORD_WEBHOOK_URL from .env
     ],
 
     'ollama' => [
         'base_url' => env('OLLAMA_BASE_URL', 'https://ollama.udianix.com.br/ollama'),
         'api_key' => env('OLLAMA_API_KEY'),
     ],
-
 ];
