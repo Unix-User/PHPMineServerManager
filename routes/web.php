@@ -146,6 +146,7 @@ Route::middleware([
         Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
         Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
         Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
+        Route::post('webhook', [DiscordController::class, 'handleWebhook'])->name('discord.webhook');
         // Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
         // Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
         // Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
