@@ -14,6 +14,7 @@ class DiscordController extends Controller
 {
     private $discordToken; // Discord bot token
     private $channelId; // Channel ID
+    private $botChannelId; // Channel ID
     private $updateChannelId; // Channel ID
     private $serverId; // Server ID
     private $headers;
@@ -23,6 +24,7 @@ class DiscordController extends Controller
     {
         $this->discordToken = env('DISCORD_TOKEN');
         $this->channelId = env('DISCORD_CHANNEL_ID');
+        $this->botChannelId = env('DISCORD_BOT_CHANNEL_ID');
         $this->updateChannelId = env('DISCORD_UPDATE_CHANNEL_ID');
         $this->serverId = env('DISCORD_SERVER_ID');
         $this->headers = [
@@ -65,9 +67,10 @@ class DiscordController extends Controller
         }
     }
 
-    private function sendBotMessage($content)
+    private function sendBotMessage($content, $channelId = null)
     {
-        return Http::retry(3, 100)->withHeaders($this->headers)->post("https://discord.com/api/v10/channels/{$this->channelId}/messages", [
+        $channel = $channelId ?? $this->channelId;
+        return Http::retry(3, 100)->withHeaders($this->headers)->post("https://discord.com/api/v10/channels/{$channel}/messages", [
             'content' => $content,
         ]);
     }
@@ -81,9 +84,15 @@ class DiscordController extends Controller
 
         RateLimiter::hit('check_discord_messages');
 
-        $response = $this->sendRequest('GET', "/channels/{$this->channelId}/messages");
+        $this->processMessages($this->channelId, $ollamaService);
+        $this->processMessages($this->botChannelId, $ollamaService);
+    }
+
+    private function processMessages($channelId, OllamaService $ollamaService)
+    {
+        $response = $this->sendRequest('GET', "/channels/{$channelId}/messages");
         
-        $processedMessages = Cache::get('processed_discord_messages', []);
+        $processedMessages = Cache::get('processed_discord_messages_' . $channelId, []);
         
         foreach ($response as $message) {
             if (!in_array($message['id'], $processedMessages)) {
@@ -95,9 +104,7 @@ class DiscordController extends Controller
         }
 
         $processedMessages = array_slice($processedMessages, -100);
-        Cache::put('processed_discord_messages', $processedMessages, now()->addDay());
-
-        return $response;
+        Cache::put('processed_discord_messages_' . $channelId, $processedMessages, now()->addDay());
     }
 
     private function handleMrRobotMention($message, OllamaService $ollamaService)
