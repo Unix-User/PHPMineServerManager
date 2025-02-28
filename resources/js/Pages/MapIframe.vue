@@ -56,13 +56,13 @@ export default {
         PrimaryButton
     },
     setup() {
-        const iframeSrc = ref('https://minecraft.udianix.com.br/dynmap/factions');
-        const overviewerSrc = ref('https://minecraft.udianix.com.br/dynmap/skyblock');
+        const factionsIframeSrc = ref('https://dynmap.udianix.com.br/?worldname=udianix.com.br&mapname=surface&zoom=5');
+        const skyblockIframeSrc = ref('https://dynmap.udianix.com.br/?worldname=SuperiorWorld&mapname=surface&zoom=7');
         fetchBusyStatus();
         return {
             isLoading,
-            iframeSrc,
-            overviewerSrc,
+            factionsIframeSrc,
+            skyblockIframeSrc,
             runPoiUpdate,
             runMapUpdate
         };
@@ -88,7 +88,7 @@ export default {
                 >
                     <div class="container mx-auto" id="content">
                         <div id="mapRow">
-                            <a href="https://minecraft.udianix.com.br/dynmap/factions" target="_blank"
+                            <a href="https://dynmap.udianix.com.br/?worldname=udianix.com.br&mapname=surface&zoom=5" target="_blank"
                                 aria-label="Abrir mapa dinâmico em nova aba" title="Abrir mapa dinâmico em nova aba">
                                 <div class="rounded shadow-sm p-4 m-4" id="mapContent">
                                     <div class="flex justify-between items-center">
@@ -102,7 +102,7 @@ export default {
                                             </svg>
                                         </div>
                                     </div>
-                                    <iframe :src="iframeSrc" style="width:100%; height:500px;"></iframe>
+                                    <iframe :src="factionsIframeSrc" style="width:100%; height:500px;"></iframe>
                                 </div>
                             </a>
                         </div>
