@@ -37,20 +37,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/lsdirectory/{directoryPath?}', function (HttpRequest $request, $directoryPath = null) {
-    // Se não houver path na URL, usa a raiz
-    if (empty($directoryPath)) {
-        $directoryPath = './';
-    } else {
-        // Adiciona barra no início se não tiver
-        $directoryPath = './' . ltrim($directoryPath, '/');
-    }
 
-    // Passa o path para o request
-    $request->merge(['directoryPath' => $directoryPath]);
-
-    return app(JsonApiReloadedController::class)->fsListDirectory($request);
-})->where('directoryPath', '.*')->name('list-directory');
 
 // status
 Route::get('status', [StatusController::class, 'show'])->name('status');
@@ -260,8 +247,19 @@ Route::middleware([
             }
         })->name('api.getJavaMemoryUsage');
     });
+    
     Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
     Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
     Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
+
+    Route::get('/lsdirectory/{directoryPath?}', function (HttpRequest $request, $directoryPath = null) {
+        if (empty($directoryPath)) {
+            $directoryPath = './';
+        } else {
+            $directoryPath = './' . ltrim($directoryPath, '/');
+        }
+        $request->merge(['directoryPath' => $directoryPath]);
+        return app(JsonApiReloadedController::class)->fsListDirectory($request);
+    })->where('directoryPath', '.*')->name('list-directory');
 });
 
