@@ -14,6 +14,8 @@ use Inertia\Inertia;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\JsonApiReloadedController;
+use Illuminate\Http\Request as HttpRequest;
+use App\Http\Controllers\AccountLinkController;
 
 /*
 --------------------------------------------------------------------------
@@ -34,6 +36,24 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/lsdirectory/{directoryPath?}', function (HttpRequest $request, $directoryPath = null) {
+    // Se não houver path na URL, usa a raiz
+    if (empty($directoryPath)) {
+        $directoryPath = './';
+    } else {
+        // Adiciona barra no início se não tiver
+        $directoryPath = './' . ltrim($directoryPath, '/');
+    }
+
+    // Passa o path para o request
+    $request->merge(['directoryPath' => $directoryPath]);
+
+    return app(JsonApiReloadedController::class)->fsListDirectory($request);
+})->where('directoryPath', '.*')->name('list-directory');
+
+// status
+Route::get('status', [StatusController::class, 'show'])->name('status');
 
 // discord invite
 Route::get('invite', fn () => redirect(env('DISCORD_INVITE_URL')))->name('invite');
@@ -90,14 +110,15 @@ Route::middleware([
     Route::get('/help', fn () => Inertia::render('Help'));
     Route::get('/updates', fn () => Inertia::render('UpdatesPage'))->name('updates');
     
-    // // shop
-    // Route::resource('shop/items', ShopItemController::class)->names([
-    //     'index' => 'shop.items',
-    //     'store' => 'shop.items.store',
-    //     'show' => 'shop.items.show',
-    //     'update' => 'shop.items.update',
-    //     'destroy' => 'shop.items.delete',
-    // ]);
+    // shop
+    Route::get('/shop', [ShopItemController::class, 'index'])->name('shop');
+    Route::resource('shop/items', ShopItemController::class)->names([
+        'store' => 'shop.items.store',
+        'show' => 'shop.items.show',
+        'update' => 'shop.items.update',
+        'destroy' => 'shop.items.delete',
+    ]);
+    
 
     // // updates
     // Route::resource('update/posts', UpdatePostsController::class)->names([
@@ -131,34 +152,20 @@ Route::middleware([
     Route::post('/run-poi-update', [MinecraftController::class, 'runPoiUpdate']);
     Route::post('/run-map-update', [MinecraftController::class, 'runMapUpdate']);
 
-    Route::get('status', [StatusController::class, 'show'])->name('status');
     Route::get('busy', [StatusController::class, 'overviewerIsRunning'])->name('busy');
 
-    Route::resource('assinatura/vip', AssinaturaVipController::class)->names([
-        'index' => 'assinatura.vip',
-        'store' => 'assinatura.vip.store',
-        'show' => 'assinatura.vip.show',
-        'update' => 'assinatura.vip.update',
-        'destroy' => 'assinatura.vip.delete',
-    ]);
-
     Route::prefix('discord')->group(function () {
-        Route::get('send-message/{content}', [DiscordController::class, 'sendMessage'])->name('send-message');
+        Route::post('send-message', [DiscordController::class, 'sendMessage'])->name('send-message');
         Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
         Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
-        Route::post('webhook', [DiscordController::class, 'handleWebhook'])->name('discord.webhook');
-        // Route::post('create-role', [DiscordController::class, 'createRole'])->name('create-role');
-        // Route::get('get-roles', [DiscordController::class, 'getRoles'])->name('get-roles');
-        // Route::patch('update-role/{roleId}', [DiscordController::class, 'updateRole'])->name('update-role');
-        // Route::delete('delete-role/{roleId}', [DiscordController::class, 'deleteRole'])->name('delete-role');
-        // Route::put('assign-role/{userId}/{roleId}', [DiscordController::class, 'assignRole'])->name('assign-role');
-        // Route::delete('remove-role/{userId}/{roleId}', [DiscordController::class, 'removeRole'])->name('remove-role');
+        Route::post('webhook', [DiscordController::class, 'handleWebhook'])->name('webhook');
     });
     
     Route::prefix('api')->group(function () {
         Route::get('/get-latest-chats', function () {
+            $req = new HttpRequest;
             if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->getLatestChatsWithLimit();
+                return app(JsonApiReloadedController::class)->getLatestChatsWithLimit($req->merge(['limit' => 30]));
             } else {
                 abort(403, 'Unauthorized');
             }
@@ -253,5 +260,8 @@ Route::middleware([
             }
         })->name('api.getJavaMemoryUsage');
     });
+    Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
+    Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
+    Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
 });
 
