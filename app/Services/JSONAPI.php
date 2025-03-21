@@ -34,11 +34,48 @@ class JSONAPI {
         $this->timeout = 10; // Default timeout can be adjusted or also set from env if needed
     }
 
-    // Constructor and other existing methods remain unchanged...
+    // Métodos de manipulação de arquivos
+    public function fsAppend($filePath, $content) {
+        return $this->call('fs.append', [$filePath, $content]);
+    }
 
-    /**
-     * System information retrieval methods.
-     */
+    public function fsCreateFile($filePath) {
+        return $this->call('fs.createFile', [$filePath]);
+    }
+
+    public function fsCreateFolder($folderPath) {
+        return $this->call('fs.createFolder', [$folderPath]);
+    }
+
+    public function fsDelete($path) {
+        return $this->call('fs.delete', [$path]);
+    }
+
+    public function fsListDirectory($directoryPath) {
+        return $this->call('fs.listDirectory', [$directoryPath]);
+    }
+
+    public function fsMove($oldPath, $newPath) {
+        return $this->call('fs.move', [$oldPath, $newPath]);
+    }
+
+    public function fsRead($filePath) {
+        return $this->call('fs.read', [$filePath]);
+    }
+
+    public function fsReadBinary($filePath) {
+        return $this->call('fs.readBinary', [$filePath]);
+    }
+
+    public function fsWrite($filePath, $content) {
+        return $this->call('fs.write', [$filePath, $content]);
+    }
+
+    public function fsWriteBinary($filePath, $base64Content) {
+        return $this->call('fs.writeBinary', [$filePath, $base64Content]);
+    }
+
+    // Restante dos métodos existentes permanecem inalterados...
     public function getCpuCores() {
         return $this->errorResponse('system.getCpuCores');
     }
@@ -91,30 +128,29 @@ class JSONAPI {
         return $this->call('system.getServerClockDebug', []);
     }
 
-    /**
-     * Retrieves the current player count from the server.
-     */
     public function getPlayerCount() {
         return $this->call('getPlayerCount', []);
     }
 
-    /**
-     * Retrieves the server version.
-     */
     public function getServerVersion() {
         return $this->call('getServerVersion', []);
     }
 
-    /**
-     * Retrieves the names of online players in a specific world.
-     */
     public function getOnlinePlayerNamesInWorld($worldName) {
         return $this->call('getOnlinePlayerNamesInWorld', ['worldName' => $worldName]);
     }
 
-    /**
-     * A generic method to perform API calls.
-     */
+    public function getPlayerInventory($playerName) {
+        return $this->call('getPlayerInventory', ['playerName' => $playerName]);
+    }
+
+    public function getPlayerInventorySlot($playerName, $slot) {
+        return $this->call('getPlayerInventorySlot', [
+            'playerName' => $playerName,
+            'slot' => $slot
+        ]);
+    }
+
     public function call($method, $args = []) {
         $json = $this->constructCall($method, $args);
         $url = $this->makeURL($method, $args);
@@ -162,9 +198,6 @@ class JSONAPI {
         }
     }
 
-    /**
-     * Checks if the server port is open to ensure connection is possible.
-     */
     public function checkConnection() {
         $connection = @fsockopen($this->host, $this->port);
         if ($connection) {
@@ -185,7 +218,4 @@ class JSONAPI {
             ]
         ];
     }
-
-    // Other existing methods remain unchanged...
 }
-
