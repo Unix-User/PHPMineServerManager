@@ -64,10 +64,10 @@ Route::get('auth/github/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'github');
 })->name('github.callback');
 
-Route::get('auth/google', function () use ($loginController) {
+Route::match(['get', 'post'], 'auth/google', function () use ($loginController) {
     return $loginController->redirectToProvider(request(), 'google');
 })->name('google');
-Route::get('auth/google/callback', function () use ($loginController) {
+Route::match(['get', 'post'], 'auth/google/callback', function () use ($loginController) {
     return $loginController->handleProviderCallback(request(), 'google');
 })->name('google.callback');
 
@@ -251,6 +251,7 @@ Route::middleware([
     Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
     Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
     Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
+    Route::post('/account/unlink', [AccountLinkController::class, 'unlinkAccount'])->name('account.unlink');
 
     Route::get('/lsdirectory/{directoryPath?}', function (HttpRequest $request, $directoryPath = null) {
         if (empty($directoryPath)) {
