@@ -52,10 +52,12 @@ return [
     'discord' => [
         'client_id' => env('DISCORD_CLIENT_ID'),
         'client_secret' => env('DISCORD_CLIENT_SECRET'),
-        'redirect' => env('APP_URL') . '/auth/discord/callback',
+        'redirect' => env('DISCORD_REDIRECT_URI'),
         'bot_token' => env('DISCORD_TOKEN'), // Updated to use DISCORD_TOKEN from .env
         'bot_id' => env('MR_ROBOT_ID'), // Updated to use MR_ROBOT_ID from .env
-        'webhook_secret' => env('DISCORD_WEBHOOK_URL'), // Updated to use DISCORD_WEBHOOK_URL from .env
+        'webhook_url' => env('DISCORD_WEBHOOK_URL'),
+        'channel_id' => env('DISCORD_CHANNEL_ID'),
+        'server_id' => env('DISCORD_SERVER_ID'),
     ],
 
     'ollama' => [

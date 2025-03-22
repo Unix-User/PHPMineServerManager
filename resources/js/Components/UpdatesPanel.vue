@@ -1,17 +1,17 @@
 <template>
     <div
-        class="bg-white dark:bg-gray-800 rounded-lg p-0"
+        class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-md transition-all duration-300 hover:shadow-lg"
         ref="messagesContainer"
-        style="height: 400px; overflow-y: scroll"
+        style="height: 400px; overflow-y: auto"
     >
         <div
             v-for="message in messages"
             :key="message.id"
-            class="bg-gray-100 dark:bg-gray-700 rounded-lg mt-3 mb-3 p-4 shadow-sm"
+            class="bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-lg mx-3 my-4 p-5 shadow-sm transition-all duration-200 hover:shadow-md"
         >
-            <div v-html="convertMarkdown(message.content)" class="mb-4"></div>
+            <div v-html="convertMarkdown(message.content)" class="mb-4 prose dark:prose-invert max-w-none"></div>
 
-            <div v-if="message.attachments.length" class="attachments mb-2">
+            <div v-if="message.attachments.length" class="attachments mb-3 space-y-2">
                 <template
                     v-for="attachment in message.attachments"
                     :key="attachment.id"
@@ -22,43 +22,44 @@
                             isImageAttachment(attachment.url) ||
                             isTextAttachment(attachment.url)
                         "
+                        class="attachment-preview transition-transform duration-300 hover:scale-[1.02]"
                     >
                         <video
                             v-if="isVideoAttachment(attachment.url)"
                             controls
                             :src="attachment.url"
-                            class="rounded-lg mt-2"
-                            style="max-height: 200px"
+                            class="rounded-lg mt-2 w-full max-h-48 object-contain shadow-sm"
                         ></video>
                         <img
                             v-else-if="isImageAttachment(attachment.url)"
                             :src="attachment.url"
                             :alt="`Attachment from ${message.author.username}`"
-                            class="rounded-lg mt-2"
-                            style="max-height: 200px"
+                            class="rounded-lg mt-2 w-full max-h-48 object-contain shadow-sm"
+                            loading="lazy"
                         />
                         <div
                             v-else-if="isTextAttachment(attachment.url)"
-                            class="text-preview rounded-lg mt-2 p-2 bg-gray-200 dark:bg-gray-600"
+                            class="text-preview rounded-lg mt-2 p-3 bg-gray-200/90 dark:bg-gray-600/90 backdrop-blur-sm shadow-sm"
                             style="max-height: 200px; overflow-y: auto"
                         >
-                            <pre>{{ textContents[attachment.url] }}</pre>
+                            <pre class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{{ textContents[attachment.url] }}</pre>
                         </div>
                     </div>
                     <a
                         :href="attachment.url"
                         target="_blank"
-                        class="text-blue-500 hover:text-blue-700"
+                        rel="noopener noreferrer"
+                        class="inline-block mt-2 transition-all duration-200"
                     >
                         <span
-                            class="inline-block bg-blue-100 dark:bg-blue-900 rounded-full px-3 py-1 text-sm font-semibold text-blue-700 dark:text-blue-300 mr-2 mb-2 mt-2"
-                            >Download</span
+                            class="bg-blue-100/90 dark:bg-blue-900/90 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-blue-200/90 dark:hover:bg-blue-800/90"
+                            >Download Attachment</span
                         >
                     </a>
                 </template>
             </div>
-            <div class="flex justify-between items-center">
-                <p class="text-gray-500 dark:text-gray-300 text-sm">
+            <div class="flex flex-wrap justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-600">
+                <div class="flex items-center text-gray-600 dark:text-gray-300 text-sm">
                     <img
                         :src="
                             message.author.avatar
@@ -66,17 +67,19 @@
                                 : 'https://cdn.discordapp.com/embed/avatars/0.png'
                         "
                         alt="avatar"
-                        class="rounded-full w-6 h-6 inline-block mr-2"
+                        class="rounded-full w-7 h-7 inline-block mr-2 shadow-sm border border-gray-200 dark:border-gray-600"
+                        loading="lazy"
                     />
-                    <span>{{ message.author.username }}</span>
-                </p>
-                <p class="text-gray-500 dark:text-gray-300 text-sm">
+                    <span class="font-medium">{{ message.author.username }}</span>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1 sm:mt-0">
                     {{ new Date(message.timestamp).toLocaleString("pt-BR") }}
                 </p>
             </div>
         </div>
     </div>
 </template>
+
 <script>
 import { ref, onMounted, nextTick, reactive } from "vue";
 import axios from "axios";
@@ -125,6 +128,9 @@ export default {
             renderer.heading = (text, level) => {
                 const escapedText = text.toLowerCase().replace(/[^\w]+/g, "-");
                 return `<h${level} id="${escapedText}" class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight mb-4">${text}</h${level}>`;
+            };
+            renderer.link = (href, title, text) => {
+                return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">${text}</a>`;
             };
             renderer.text = (text) => {
                 return text.replace(/<@(\d+)>/g, (match, id) => {
