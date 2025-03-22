@@ -155,4 +155,36 @@ class AccountLinkController extends Controller
             ]);
         }
     }
+
+    public function unlinkAccount(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !$user->minecraft_id) {
+            return back()->withErrors([
+                'error' => 'Usuário não autenticado ou conta não vinculada'
+            ]);
+        }
+
+        $nickname = $user->minecraft_id;
+
+        try {
+            // Remove o nickname do usuário
+            User::where('id', $user->id)->update([
+                'minecraft_id' => null
+            ]);
+
+            // Envia mensagem de confirmação no Minecraft
+            $command = "tellraw {$nickname} {\"text\":\"Sua conta foi desvinculada com sucesso!\",\"color\":\"green\"}";
+            Artisan::call('minecraft:send-json-api-command', [
+                'jsonCommand' => $command
+            ]);
+
+            return back()->with('status', 'Conta desvinculada com sucesso');
+
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Erro ao desvincular conta: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
