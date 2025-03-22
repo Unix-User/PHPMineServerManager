@@ -45,7 +45,7 @@ const handleAuth = () => {
                 authError.value = 'Erro na autenticação: ' + response.error;
                 return;
             }
-            
+
             try {
                 const tokenResponse = await axios.post('/auth/google', {
                     code: response.code
@@ -56,7 +56,8 @@ const handleAuth = () => {
                 authError.value = 'Erro ao obter token de acesso: ' + error.message;
             }
         },
-        ux_mode: 'popup'
+        ux_mode: 'popup',
+        client_type: 'IDP' // Adicionado client_type: 'IDP' para corrigir o erro Storagerelay URI
     });
     client.requestCode();
 };
