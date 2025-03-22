@@ -106,6 +106,18 @@ class AccountLinkController extends Controller
         User::where('id', $user->id)->update([
             'minecraft_id' => $linkRequest->nickname
         ]);
+        
+        // Adiciona o usuário ao grupo jogador do LuckPerms
+        $lpCommand = "lp user {$linkRequest->nickname} parent add jogador";
+        Artisan::call('minecraft:send-json-api-command', [
+            'jsonCommand' => $lpCommand
+        ]);
+
+        // Envia mensagem de confirmação no Minecraft
+        $command = "tellraw {$linkRequest->nickname} {\"text\":\"Sua conta foi vinculada com sucesso!\",\"color\":\"green\"}";
+        Artisan::call('minecraft:send-json-api-command', [
+            'jsonCommand' => $command
+        ]);
 
         // Envia mensagem de confirmação no Minecraft
         $command = "tellraw {$linkRequest->nickname} {\"text\":\"Sua conta foi vinculada com sucesso!\",\"color\":\"green\"}";
