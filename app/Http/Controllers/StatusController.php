@@ -17,34 +17,61 @@ class StatusController extends Controller
     {
         $minecraftRconController = new MinecraftRconController();
         
-        // Execute 'list' command
+        // Execute 'list' command to get player information
         $response = $minecraftRconController->executeInternalCommand(new Request(['command' => 'list']));
-        $responseContent = str_replace('\u0000\u0000', '', $response->getContent());
+        $responseContent = $this->cleanResponseContent($response->getContent());
         $responseArray = json_decode($responseContent, true);
-        $responseContent = preg_replace('/§./', '', $responseArray['response']);
-        preg_match('/Há (\d+) de no máximo (\d+) jogadores online./', $responseContent, $matches);
-        $jogadores = $matches[1] ?? '0';
-        $maxJogadores = $matches[2] ?? '20';
-        $online = explode("\n", trim(str_replace($matches[0], '', $responseContent)));
-        // Execute '/version' command
+        $responseContent = $this->removeFormattingCodes($responseArray['response']);
+        
+        // Extract player count and list
+        $playerData = $this->extractPlayerData($responseContent);
+        
+        // Execute '/version' command to get server version
         $versionResponse = $minecraftRconController->executeInternalCommand(new Request(['command' => 'version']));
-        $versionResponseContent = str_replace('\u0000\u0000', '', $versionResponse->getContent());
+        $versionResponseContent = $this->cleanResponseContent($versionResponse->getContent());
         $versionResponseArray = json_decode($versionResponseContent, true);
-        preg_match('/MC: (\d+\.\d+\.\d+)/', $versionResponseArray['response'], $matches);
-        $serverVersion = $matches[1];
+        $serverVersion = $this->extractServerVersion($versionResponseArray['response']);
         
         return response()->json([
             'response' => $responseArray,
-            'responseclean' => $responseContent, 
+            'responseclean' => $responseContent,
             'javaVersion' => $this->getJavaVersion(),
             'isProgramRunning' => $this->isServiceRunning(),
-            // 'ipAddress' => $this->host,
-            // 'portStatus' => $this->getPortStatus(),
-            'jogadores' => $jogadores,
-            'maxJogadores' => $maxJogadores,
-            'online' => $online,
+            'jogadores' => $playerData['count'],
+            'maxJogadores' => $playerData['max'],
+            'online' => $playerData['players'],
             'serverVersion' => $serverVersion
         ]);
+    }
+
+    private function cleanResponseContent($content)
+    {
+        return str_replace('\u0000\u0000', '', $content);
+    }
+
+    private function removeFormattingCodes($text)
+    {
+        return preg_replace('/§./', '', $text);
+    }
+
+    private function extractPlayerData($response)
+    {
+        preg_match('/Há (\d+) de no máximo (\d+) jogadores online./', $response, $matches);
+        $count = $matches[1] ?? '0';
+        $max = $matches[2] ?? '20';
+        $players = explode("\n", trim(str_replace($matches[0], '', $response)));
+        
+        return [
+            'count' => $count,
+            'max' => $max,
+            'players' => $players
+        ];
+    }
+
+    private function extractServerVersion($response)
+    {
+        preg_match('/MC: (\d+\.\d+\.\d+)/', $response, $matches);
+        return $matches[1] ?? 'Unknown';
     }
 
     private function getJavaVersion()
