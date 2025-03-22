@@ -89,6 +89,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
     // pages
+    Route::get('/home', fn () => Inertia::render('Home'))->name('home');
     Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
     Route::get('/map', fn () => Inertia::render('MapIframe'))->name('map');
     Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
