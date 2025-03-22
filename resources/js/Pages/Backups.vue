@@ -49,15 +49,24 @@ const handleAuth = () => {
             try {
                 const tokenResponse = await axios.post('/auth/google', {
                     code: response.code
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
                 });
                 oauthToken.value = tokenResponse.data.access_token;
                 fetchFileList();
             } catch (error) {
                 authError.value = 'Erro ao obter token de acesso: ' + error.message;
+                if (error.response && error.response.status === 500) {
+                    authError.value += ' - Erro interno do servidor. Por favor, tente novamente mais tarde.';
+                }
             }
         },
         ux_mode: 'popup',
-        client_type: 'IDP' // Adicionado client_type: 'IDP' para corrigir o erro Storagerelay URI
+        client_type: 'IDP',
+        redirect_uri: window.location.origin + '/auth/google/callback'
     });
     client.requestCode();
 };
@@ -74,6 +83,7 @@ const fetchFileList = async () => {
         const response = await axios.get('https://www.googleapis.com/drive/v3/files', {
             headers: {
                 Authorization: `Bearer ${oauthToken.value}`,
+                'Accept': 'application/json'
             },
             params: {
                 q: `'${currentFolderId.value}' in parents and trashed=false`,
@@ -105,6 +115,7 @@ const downloadFile = async (fileId) => {
         const response = await axios.get(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
             headers: {
                 Authorization: `Bearer ${oauthToken.value}`,
+                'Accept': 'application/json'
             },
             params: {
                 alt: 'media'
