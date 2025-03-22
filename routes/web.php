@@ -1,11 +1,9 @@
 <?php
 
-use App\Http\Controllers\AssinaturaVipController;
 use App\Http\Controllers\MinecraftController;
 use App\Http\Controllers\MinecraftRconController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\StatusController;
-use App\Http\Controllers\UpdatePostsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
