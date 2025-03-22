@@ -5,11 +5,11 @@ import axios from "axios";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 
 const isLoading = ref(false);
-const iframeSrc = ref("https://drive.google.com/embeddedfolderview?id=1ce6Uen0tXTAwM_URk2KfKv6LwpbF77Nk#grid");
 const oauthToken = ref(null);
-const gapiLoaded = ref(false);
 const authError = ref(null);
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const fileList = ref([]);
+const currentFolderId = ref('root');
 
 const fetchBusyStatus = async () => {
     try {
@@ -20,78 +20,113 @@ const fetchBusyStatus = async () => {
     }
 };
 
-const loadGoogleApi = () => {
-  return new Promise((resolve, reject) => {
-    if (window.gapi) {
-      resolve();
-      return;
-    }
+const initGoogleAuth = () => {
+    return new Promise((resolve) => {
+        if (window.google) return resolve();
 
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => {
-      window.gapi.load('client:auth2', () => {
-        console.log('Google API carregada com sucesso');
-        gapiLoaded.value = true;
-        resolve();
-      });
-    };
-    script.onerror = (error) => {
-      reject(new Error('Falha ao carregar Google API'));
-    };
-    document.head.appendChild(script);
-  });
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = resolve;
+        script.onerror = () => {
+            authError.value = 'Falha ao carregar Google Identity Services';
+        };
+        document.head.appendChild(script);
+    });
 };
 
-const initClient = async () => {
-  try {
-    await loadGoogleApi();
-    
-    await window.gapi.client.init({
-      apiKey: import.meta.env.VITE_GOOGLE_API_KEY,
-      clientId: googleClientId,
-      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-      scope: 'https://www.googleapis.com/auth/drive.readonly'
+const handleAuth = () => {
+    const client = google.accounts.oauth2.initCodeClient({
+        client_id: googleClientId,
+        scope: 'https://www.googleapis.com/auth/drive.readonly',
+        callback: async (response) => {
+            if (response.error) {
+                authError.value = 'Erro na autenticação: ' + response.error;
+                return;
+            }
+            
+            try {
+                const tokenResponse = await axios.post('/auth/google', {
+                    code: response.code
+                });
+                oauthToken.value = tokenResponse.data.access_token;
+                fetchFileList();
+            } catch (error) {
+                authError.value = 'Erro ao obter token de acesso: ' + error.message;
+            }
+        },
+        ux_mode: 'popup'
     });
-
-    console.log('Cliente Google inicializado');
-    
-    window.gapi.auth2.getAuthInstance().isSignedIn.listen(isSignedIn => {
-      if (isSignedIn) {
-        oauthToken.value = window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-      }
-    });
-
-    if (window.gapi.auth2.getAuthInstance().isSignedIn.get()) {
-      oauthToken.value = window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-    }
-
-  } catch (error) {
-    console.error('Erro na inicialização:', error);
-    authError.value = 'Erro ao conectar com o Google Drive';
-  }
+    client.requestCode();
 };
 
-const handleAuth = async () => {
+const fetchFileList = async () => {
+    if (!oauthToken.value) {
+        console.error("OAuth token não disponível.");
+        return;
+    }
+    isLoading.value = true;
+    fileList.value = [];
+
     try {
-        if (!window.gapi || !window.gapi.auth2) {
-            throw new Error('Biblioteca Google não carregada');
-        }
-        
-        const authInstance = window.gapi.auth2.getAuthInstance();
-        const authResponse = await authInstance.signIn({
-            scope: 'https://www.googleapis.com/auth/drive.readonly'
+        const response = await axios.get('https://www.googleapis.com/drive/v3/files', {
+            headers: {
+                Authorization: `Bearer ${oauthToken.value}`,
+            },
+            params: {
+                q: `'${currentFolderId.value}' in parents and trashed=false`,
+                fields: 'files(id, name, mimeType, size, modifiedTime)',
+            },
         });
-        oauthToken.value = authResponse.getAuthResponse().access_token;
+        fileList.value = response.data.files;
     } catch (error) {
-        console.error('Erro de autenticação:', error);
-        authError.value = 'Falha ao conectar com Google Drive';
+        console.error("Erro ao buscar lista de arquivos:", error);
+        if (error.response && error.response.status === 403) {
+            authError.value = 'Permissão negada. Por favor, verifique se o token de acesso é válido e se você tem permissão para acessar este recurso.';
+            oauthToken.value = null;
+            handleAuth();
+        } else {
+            authError.value = 'Erro ao carregar arquivos do Google Drive.';
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const navigateToFolder = (folderId) => {
+    currentFolderId.value = folderId;
+    fetchFileList();
+};
+
+const downloadFile = async (fileId) => {
+    try {
+        const response = await axios.get(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+            headers: {
+                Authorization: `Bearer ${oauthToken.value}`,
+            },
+            params: {
+                alt: 'media'
+            },
+            responseType: 'blob'
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileList.value.find(file => file.id === fileId).name);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    } catch (error) {
+        console.error("Erro ao baixar o arquivo:", error);
+        alert("Erro ao baixar o arquivo.");
     }
 };
 
 onMounted(async () => {
     await fetchBusyStatus();
-    await initClient();
+    await initGoogleAuth();
 });
 </script>
 
@@ -124,53 +159,60 @@ onMounted(async () => {
                             </div>
 
                             <div v-if="authError" class="p-4 mb-4 bg-red-100 text-red-700 rounded-lg">
-                                {{ authError }} - 
-                                <button 
-                                    @click="initClient"
+                                {{ authError }} -
+                                <button
+                                    @click="initGoogleAuth"
                                     class="ml-2 text-blue-600 hover:text-blue-800 underline"
                                 >
                                     Tentar novamente
                                 </button>
                             </div>
 
-                            <div v-if="!gapiLoaded && !authError" class="p-4 text-red-500">
-                                Carregando Google Drive...
-                            </div>
-                            
-                            <div v-else class="bg-gray-100/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-2 transition-colors duration-300">
-                                <button
-                                    v-if="!oauthToken"
-                                    @click="handleAuth"
-                                    class="px-4 py-2 mb-4 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
-                                    title="Autenticar com Google">
-                                    <i class="fas fa-sign-in-alt"></i> Autenticar com Google
-                                </button>
-                                <iframe
-                                    v-if="oauthToken"
-                                    :src="iframeSrc"
-                                    class="w-full h-[500px] rounded-lg border border-gray-200/50 dark:border-gray-700/50 transition-colors duration-300"
-                                    title="Google Drive Backups"
-                                    loading="lazy"
-                                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"
-                                    allow="fullscreen"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                ></iframe>
-                                <div v-else class="p-4 text-center text-gray-600 dark:text-gray-300">
-                                    Por favor, autentique-se para acessar os backups do Google Drive.
-                                </div>
-                                <div v-if="oauthToken" class="mt-2 flex justify-end space-x-2">
+                            <div class="bg-gray-100/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-6 transition-colors duration-300 flex flex-col items-center justify-center min-h-[300px]">
+                                <div class="max-w-md w-full space-y-4 text-center">
                                     <button
-                                        @click="iframeSrc = 'https://drive.google.com/embeddedfolderview?id=1ce6Uen0tXTAwM_URk2KfKv6LwpbF77Nk#grid'"
-                                        class="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
-                                        title="Voltar para pasta principal">
-                                        <i class="fas fa-home"></i>
+                                        v-if="!oauthToken"
+                                        @click="handleAuth"
+                                        class="gsi-material-button w-full max-w-xs mx-auto transform hover:scale-105 transition-transform duration-200"
+                                        title="Autenticar com Google">
+                                        <span class="gsi-material-button-contents flex items-center justify-center space-x-2">
+                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="gsi-material-button-icon w-6 h-6">
+                                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                                            </svg>
+                                            <span class="gsi-material-button-text">Autenticar com Google</span>
+                                        </span>
                                     </button>
-                                    <button
-                                        @click="iframeSrc = iframeSrc"
-                                        class="px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300"
-                                        title="Recarregar página">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
+
+                                    <div v-if="oauthToken" class="w-full">
+                                        <ul v-if="fileList.length > 0" class="file-list space-y-2">
+                                            <li v-for="file in fileList" :key="file.id" class="file-item rounded-lg p-3 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors">
+                                                <button v-if="file.mimeType === 'application/vnd.google-apps.folder'" @click="navigateToFolder(file.id)" class="file-link folder w-full text-left">
+                                                    <i class="fas fa-folder mr-2 text-yellow-400"></i> {{ file.name }}
+                                                </button>
+                                                <a v-else @click.prevent="downloadFile(file.id)" class="file-link file w-full text-left block">
+                                                    <i class="fas fa-file mr-2 text-blue-400"></i> {{ file.name }}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <div v-else-if="oauthToken && !isLoading" class="p-4 text-center text-gray-600 dark:text-gray-300">
+                                            <i class="fas fa-inbox text-3xl mb-2 text-gray-400"></i>
+                                            <p>Nenhum backup encontrado nesta pasta.</p>
+                                        </div>
+                                        <div v-if="oauthToken && isLoading" class="flex justify-center p-4">
+                                            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Carregando arquivos...
+                                        </div>
+                                    </div>
+                                    <div v-else class="p-4 text-center text-gray-600 dark:text-gray-300">
+                                        <i class="fas fa-cloud-upload-alt text-3xl mb-2 text-gray-400"></i>
+                                        <p>Por favor, autentique-se para acessar os backups do Google Drive.</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-4 text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
@@ -197,14 +239,56 @@ onMounted(async () => {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Improved iframe styling */
-iframe {
-    background-color: transparent;
-    min-height: 500px;
-    border: 1px solid rgba(209, 213, 219, 0.3);
+.file-list {
+    list-style-type: none;
+    padding: 0;
 }
 
-.dark iframe {
-    border-color: rgba(55, 65, 81, 0.3);
+.file-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+    transition: background-color 0.3s ease;
 }
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-item:hover {
+    background-color: rgba(243, 244, 246, 0.5);
+}
+
+.dark .file-item:hover {
+    background-color: rgba(55, 65, 81, 0.3);
+}
+
+.file-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    width: 100%; /* Garante que o botão/link ocupe toda a largura do item */
+    padding: 0.5rem 0; /* Adiciona padding vertical para melhor toque */
+    cursor: pointer; /* Indica que é clicável */
+}
+
+.file-link:hover {
+    text-decoration: underline;
+}
+
+.folder {
+    color: #facc15; /* Cor amarela/dourada para pastas */
+}
+.folder:hover {
+    color: #eab308; /* Amarelo mais escuro no hover */
+}
+
+.file {
+    color: #6b7280; /* Cor cinza para arquivos */
+}
+.dark .file {
+    color: #d1d5db; /* Cinza claro para arquivos no modo dark */
+}
+
+
 </style>
