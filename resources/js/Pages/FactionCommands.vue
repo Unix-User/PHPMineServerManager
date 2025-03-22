@@ -1,27 +1,36 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import ApplicationMark from '@/Components/ApplicationMark.vue';
 
 defineProps({
     factionCommands: String,
 });
-
 </script>
 
 <template>
-    <Head title="Regras do Servidor" />
+    <AppLayout title="Comandos de Facção">
+        <template #header>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight transition-colors duration-300">
+                Comandos de Facção
+            </h2>
+        </template>
 
-    <div :class="{'dark': $page.props.user?.preferences?.darkMode, 'light': !$page.props.user?.preferences?.darkMode}" class="font-sans antialiased">
-        <div class="pt-4 bg-gray-100 dark:bg-gray-900">
-            <div class="min-h-screen flex flex-col items-center pt-6 sm:pt-0">
-                <div>
-                    <AuthenticationCardLogo />
-                </div>
-                <div class="w-full sm:max-w-2xl mt-6 p-6 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg prose dark:prose-dark">
-                    <div v-html="factionCommands" class="text-gray-900 dark:text-gray-100 selection:bg-blue-300 dark:selection:bg-blue-800 selection:text-white"></div>
+        <div class="py-12 bg-gradient-to-b from-white/50 to-transparent dark:from-gray-900/50 dark:to-transparent transition-all duration-300">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="flex flex-col items-center space-y-8">
+                    <div class="mb-6 transform transition-all duration-300 hover:scale-105 hover:rotate-2">
+                        <ApplicationMark class="block h-12 w-auto" />
+                    </div>
+                    
+                    <div class="w-full sm:max-w-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-gray-200/50 dark:border-gray-700/50">
+                        <div class="p-6 sm:p-8">
+                            <div v-html="factionCommands" class="prose max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 selection:bg-blue-500/30 dark:selection:bg-blue-600/50 transition-colors duration-300">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </AppLayout>
 </template>
-
