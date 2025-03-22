@@ -1,7 +1,6 @@
 <script setup>
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import { ref, reactive, computed } from "vue";
-import axios from "axios";
 import { usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -17,22 +16,36 @@ const serverStatus = reactive({
     getJavaMemoryUsage: "",
 });
 
-const fetchServerStatus = async () => {
+const fetchData = async (endpoint) => {
     try {
-        const [checkConnectionResponse, playerCountResponse, serverVersionResponse, getJavaMemoryUsageResponse] = await Promise.all([
-            axios.get("/api/check-connection"),
-            axios.get("/api/player-count"),
-            axios.get("/api/server-version"),
-            axios.get("/api/get-java-memory-usage")
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+        return null;
+    }
+};
+
+const fetchServerStatus = async () => {
+    serverStatus.isLoading = true;
+    try {
+        const [connectionData, playerCountData, serverVersionData, memoryUsageData] = await Promise.all([
+            fetchData("/api/check-connection"),
+            fetchData("/api/player-count"),
+            fetchData("/api/server-version"),
+            fetchData("/api/get-java-memory-usage")
         ]);
 
-        serverStatus.getJavaMemoryUsage = Math.round(getJavaMemoryUsageResponse.data.success[0].success) + " MB";
-        serverStatus.serverVersion = serverVersionResponse.data[0].success;
-        serverStatus.isServerOnline = checkConnectionResponse.data.is_connected;
-        serverStatus.jogadores = playerCountResponse.data[0].success;
-        serverStatus.isLoading = false;
+        serverStatus.isServerOnline = connectionData?.is_connected || false;
+        serverStatus.jogadores = playerCountData?.[0]?.success || '0';
+        serverStatus.serverVersion = serverVersionData?.[0]?.success || 'Indisponível';
+        serverStatus.getJavaMemoryUsage = memoryUsageData?.success?.[0]?.success 
+            ? `${Math.round(memoryUsageData.success[0].success)} MB` 
+            : 'Indisponível';
     } catch (error) {
-        console.error(error);
+        console.error("Erro ao buscar status do servidor:", error);
+    } finally {
         serverStatus.isLoading = false;
     }
 };
@@ -187,7 +200,6 @@ fetchServerStatus();
         </div>
     </div>
 </template>
-
 <style>
 .tooltip {
     position: relative;
@@ -205,8 +217,8 @@ fetchServerStatus();
     text-align: center;
     border-radius: 8px;
     padding: 8px 12px;
-    position: absolute;
-    z-index: 10;
+    position: fixed; /* Alterado de absolute para fixed */
+    z-index: 9999; /* Aumentado o z-index para garantir que fique acima de todos os elementos */
     top: -45px;
     left: 50%;
     transform: translateX(-50%);
@@ -214,8 +226,8 @@ fetchServerStatus();
     transition: opacity 0.3s, transform 0.3s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-size: 0.875rem;
-    backdrop-filter: blur(4px);
     transform: translateX(-50%) translateY(5px);
+    pointer-events: none; /* Evita que o tooltip interfira com interações */
 }
 
 .tooltip .tooltiptext::after {
@@ -237,21 +249,6 @@ fetchServerStatus();
 
 .badge {
     position: relative;
-    overflow: hidden;
-}
-
-.badge::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: 0.5s;
-}
-
-.badge:hover::before {
-    left: 100%;
+    overflow: visible; /* Alterado de hidden para visible para evitar cortes */
 }
 </style>
