@@ -1,346 +1,765 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
-import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import ApplicationMark from "@/Components/ApplicationMark.vue";
+import { ref, onMounted, reactive } from 'vue';
+import axios from 'axios';
 
 defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
-    laravelVersion: String,
-    phpVersion: String,
 });
+
+const heroItems = [
+    {
+        title: "Imersão Medieval Inigualável",
+        subtitle: "Aventure-se no maior servidor medieval de Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.",
+        image: "storage/landing-page/hero1.png",
+        cta: {
+            text: "Junte-se Agora",
+            link: "/register",
+            variant: "primary"
+        }
+    },
+    {
+        title: "Domine Facções e Crie Seu Legado",
+        subtitle: "Lidere sua facção à glória, conquiste territórios e marque seu nome na história medieval de UdiaNIX.",
+        image: "storage/landing-page/hero2.png",
+        cta: {
+            text: "Explore Facções",
+            link: "/factions",
+            variant: "secondary"
+        }
+    },
+    {
+        title: "Mapa Interativo em Tempo Real",
+        subtitle: "Visualize o mundo de UdiaNIX, planeje estratégias e encontre recursos valiosos com nosso mapa dinâmico.",
+        image: "storage/landing-page/hero3.png",
+        cta: {
+            text: "Ver Mapa Online",
+            link: "https://dynmap.udianix.com.br/?worldname=udianix.com.br&mapname=surface&zoom=5",
+            variant: "secondary"
+        }
+    }
+];
+
+const features = [
+    {
+        title: "Comunidade Amigável e Ativa",
+        description: "Faça parte de uma comunidade acolhedora e vibrante, pronta para novas aventuras e amizades.",
+        icon: "users",
+    },
+    {
+        title: "Servidor Estável e Sempre Online",
+        description: "Desfrute de uma experiência de jogo contínua e 99.9% de uptime, garantindo que sua aventura nunca pare.",
+        icon: "server",
+    },
+    {
+        title: "Sistema de Facções Estratégico",
+        description: "Domine a art da guerra e diplomacia com um sistema de facções profundo e envolvente.",
+        icon: "flag",
+    },
+    {
+        title: "Regras Claras para Jogo Justo",
+        description: "Uma experiência equilibrada e respeitosa para todos, com regras transparentes e fáceis de seguir.",
+        icon: "book",
+    },
+    {
+        title: "Comandos Exclusivos e Poderosos",
+        description: "Ferramentas de comando personalizadas para você construir, gerenciar e expandir seu reino medieval.",
+        icon: "terminal",
+    },
+    {
+        title: "Mapa Dinâmico e Detalhado",
+        description: "Explore cada recanto de UdiaNIX com um mapa interativo e em tempo real, sempre atualizado.",
+        icon: "map-location-dot",
+    },
+];
+
+const aboutUs = {
+    title: "Sobre Udianix Minecraft",
+    description: "Uidanix Minecraft é a sua porta de entrada para o mundo medieval do Minecraft em Uberlândia-MG. Uma comunidade vibrante, um servidor dedicado e inúmeras aventuras esperam por você. Junte-se a nós e construa sua história!",
+};
+
+const serverStats = ref({
+    uptime: "Calculando...",
+    factionsCount: 0,
+    playersOnline: 0,
+    maxPlayers: 20,
+    serverVersion: "Desconhecida",
+    javaVersion: "Desconhecida",
+    serviceStatus: "Calculando..."
+});
+
+const serverStatus = reactive({
+    serverVersion: "",
+    isServerOnline: false,
+    jogadores: "",
+    maxJogadores: 20,
+    online: [],
+    isLoading: true,
+    getJavaMemoryUsage: "",
+});
+
+const fetchServerStatus = async () => {
+    try {
+        const [checkConnectionResponse, playerCountResponse, serverVersionResponse, getJavaMemoryUsageResponse] = await Promise.all([
+            axios.get("/api/check-connection"),
+            axios.get("/api/player-count"),
+            axios.get("/api/server-version"),
+            axios.get("/api/get-java-memory-usage")
+        ]);
+
+        serverStatus.getJavaMemoryUsage = Math.round(getJavaMemoryUsageResponse.data.success[0].success) + " MB";
+        serverStatus.serverVersion = serverVersionResponse.data[0].success;
+        serverStatus.isServerOnline = checkConnectionResponse.data.is_connected;
+        serverStatus.jogadores = playerCountResponse.data[0].success;
+        serverStatus.isLoading = false;
+    } catch (error) {
+        console.error(error);
+        serverStatus.isLoading = false;
+    }
+};
+
+onMounted(() => {
+    fetchServerStatus();
+});
+
+const gameplayInfo = {
+    title: "Como Começar a Jogar",
+    steps: [
+        "Abra o Minecraft Java Edition (1.18.2+)",
+        "Vá em 'Multiplayer' e 'Adicionar Servidor'",
+        "Insira: `mc.udianix.com.br`",
+        "Selecione 'UdiaNIX Minecraft' e 'Entrar'",
+        "Registre-se no jogo e inicie sua aventura!",
+    ],
+    extraInfo: "Visite nosso Discord para notícias, eventos e suporte da comunidade.",
+    discordLink: "https://discord.gg/F9wYVYmqW3",
+};
+
+const testimonials = [
+    {
+        text: "UdiaNIX superou todas as minhas expectativas! Um servidor medieval incrível com uma comunidade acolhedora.",
+        author: "LordBardock",
+    },
+    {
+        text: "O sistema de facções é o coração do servidor. Estratégia e batalhas épicas definem UdiaNIX.",
+        author: "LadySnow",
+    },
+    {
+        text: "O mapa interativo me ajuda a planejar cada passo. Essencial para quem gosta de explorar e construir.",
+        author: "KingArthas",
+    },
+];
+
+const currentHeroIndex = ref(0);
+const nextHero = () => currentHeroIndex.value = (currentHeroIndex.value + 1) % heroItems.length;
+const prevHero = () => currentHeroIndex.value = (currentHeroIndex.value - 1 + heroItems.length) % heroItems.length;
 </script>
 
 <template>
-    <Head title="Bem-vindo" />
+    <div class="landing-page-background">
+    <Head title=" UdiaNIX Minecraft - Servidor Medieval #1 de Uberlândia-MG" />
 
-    <div
-        class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
-        :style="`background-image: url('storage/background.png')`"
-    >
-        <div
-            v-if="canLogin"
-            class="sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10"
-        >
-            <Link
-                v-if="$page.props.auth.user"
-                :href="route('dashboard')"
-                class="font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-            >
-                Painel
-            </Link>
-
-            <template v-else>
-                <Link
-                    :href="route('login')"
-                    class="font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                >
-                    Entrar
+    <!-- Hero Section - Transparent -->
+    <section class="hero-section relative">
+        <iframe class="hero-video w-full h-full absolute top-0 left-0"
+            src="https://www.youtube.com/embed/xcjT271y0oE?autoplay=1&mute=1&loop=1&playlist=xcjT271y0oE&controls=0&modestbranding=1&rel=0"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+        <div class="hero-overlay"></div>
+        <div class="hero-content container relative z-20">
+            <h1 class="hero-title animate-fade-in-up text-white">
+                Viva a Era Medieval no Minecraft
+            </h1>
+            <p class="hero-subtitle animate-fade-in-up delay-100 text-gray-200">
+                O servidor medieval definitivo para jogadores de Uberlândia-MG. Construa seu reino, lute por poder e
+                socialize em um mundo imersivo e dinâmico.
+            </p>
+            <div class="hero-buttons animate-fade-in-up delay-200">
+                <Link :href="route('register')" class="btn-primary btn-hero rounded-md">
+                <i class="fa-solid fa-play mr-2"></i> Junte-se Gratuitamente
                 </Link>
+                <Link :href="gameplayInfo.discordLink" target="_blank" class="btn-secondary btn-hero rounded-md">
+                <i class="fa-brands fa-discord mr-2"></i> Nossa Comunidade Discord
+                </Link>
+            </div>
+        </div>
+    </section>
 
+    <!-- Server Highlights Section - Solid -->
+    <section class="highlights-section py-20 bg-gray-900">
+        <div class="container">
+            <h2 class="section-title">Destaques do Servidor UdiaNIX</h2>
+            <p class="section-subtitle">Descubra o que torna UdiaNIX a melhor escolha para sua aventura medieval no
+                Minecraft.</p>
+            <div class="highlights-grid">
+                <div v-for="(stat, index) in [
+                    { title: `${serverStatus.jogadores || '...'}/${serverStatus.maxJogadores} Jogadores Online`, description: 'Junte-se a uma comunidade medieval ativa e vibrante!', icon: 'users' },
+                    { title: `Servidor ${serverStatus.isServerOnline ? 'Online' : 'Offline'}`, description: 'Disponibilidade garantida para sua aventura.', icon: 'server' },
+                    { title: `Versão do Servidor: ${serverStatus.serverVersion || '...' }`, description: 'Sempre atualizado com as últimas novidades.', icon: 'code' }
+                ]" :key="index" class="highlight-card bg-gray-800/70 backdrop-blur-sm">
+                    <i class="highlight-icon"
+                        :class="{ 'fa-solid fa-users': stat.icon === 'users', 'fa-solid fa-server': stat.icon === 'server', 'fa-solid fa-code': stat.icon === 'code' }"></i>
+                    <h3 class="highlight-title">{{ stat.title }}</h3>
+                    <p class="highlight-description">{{ stat.description }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hero Carousel Section - Transparent -->
+    <section class="carousel-section py-20">
+        <div class="container">
+            <h2 class="section-title">Explore o Mundo de UdiaNIX</h2>
+            <p class="section-subtitle">Uma prévia das aventuras e paisagens que esperam por você em nosso servidor.</p>
+        </div>
+        <div class="carousel-wrapper">
+            <div class="carousel-container">
+                <div v-for="(item, index) in heroItems" :key="index" class="carousel-item"
+                    :class="{ 'active': currentHeroIndex === index }">
+                    <img :src="item.image" :alt="item.title" class="carousel-image" />
+                    <div class="carousel-content bg-black/30 backdrop-blur-sm">
+                        <h3 class="carousel-title">{{ item.title }}</h3>
+                        <p class="carousel-subtitle">{{ item.subtitle }}</p>
+                        <Link :href="item.cta.link"
+                            :class="['btn', item.cta.variant === 'primary' ? 'btn-primary' : 'btn-secondary', 'btn-carousel', 'rounded-md']">
+                        {{ item.cta.text }}
+                        </Link>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-controls">
+                <button @click="prevHero" class="carousel-control-button bg-white/60 backdrop-blur-sm rounded-md">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button @click="nextHero" class="carousel-control-button bg-white/60 backdrop-blur-sm rounded-md">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section - Solid -->
+    <section class="detailed-features-section py-20 bg-gray-900">
+        <div class="container">
+            <h2 class="section-title text-center">Recursos Exclusivos que Você Vai Adorar</h2>
+            <p class="section-subtitle text-center">Descubra as funcionalidades que tornam UdiaNIX único e envolvente.
+            </p>
+            <div class="detailed-features-grid">
+                <div v-for="(feature, index) in features" :key="index"
+                    class="detailed-feature-card bg-gray-800/70 backdrop-blur-sm">
+                    <i class="detailed-feature-icon" :class="`fa-solid fa-${feature.icon.toLowerCase()}`"></i>
+                    <h3 class="detailed-feature-title">{{ feature.title }}</h3>
+                    <p class="detailed-feature-description">{{ feature.description }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gameplay Info Section - Transparent -->
+    <section class="gameplay-section py-20">
+        <div class="container">
+            <div class="gameplay-grid">
+                <div>
+                    <h2 class="section-title">Pronto para Começar sua Aventura?</h2>
+                    <p class="section-subtitle">Siga estes passos simples e junte-se à comunidade UdiaNIX hoje mesmo.
+                    </p>
+                    <ul class="gameplay-steps">
+                        <li v-for="(step, index) in gameplayInfo.steps" :key="index" class="animate-fade-in-up"
+                            :style="`animation-delay: ${index * 100}ms`">
+                            <span class="step-number">{{ index + 1 }}.</span> {{ step }}
+                        </li>
+                    </ul>
+                    <p class="gameplay-extra-info">{{ gameplayInfo.extraInfo }}</p>
+                    <div class="gameplay-discord-button">
+                        <Link :href="gameplayInfo.discordLink" target="_blank" class="btn-discord btn-lg rounded-md">
+                        <i class="fa-brands fa-discord mr-2"></i> Junte-se ao Discord
+                        </Link>
+                    </div>
+                </div>
+                <div class="gameplay-video-container aspect-video w-full max-w-[800px] mx-auto">
+                    <iframe class="gameplay-video w-full h-full rounded-lg shadow-lg"
+                        src="https://www.youtube.com/embed/xcjT271y0oE?si=Qd_Z9n8WmYwtbwNp" title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section - Solid -->
+    <section class="testimonials-section py-20 bg-gray-900">
+        <div class="container">
+            <h2 class="section-title">O Que Nossos Jogadores Dizem</h2>
+            <p class="section-subtitle">Descubra por que a comunidade UdiaNIX é tão apaixonada pelo servidor.</p>
+            <div class="testimonials-grid">
+                <div v-for="(testimonial, index) in testimonials" :key="index"
+                    class="testimonial-card bg-gray-800/70 backdrop-blur-sm">
+                    <i class="fa-solid fa-quote-left testimonial-quote-icon"></i>
+                    <p class="testimonial-text">"{{ testimonial.text }}"</p>
+                    <p class="testimonial-author">- {{ testimonial.author }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us Section - Transparent -->
+    <section class="about-us-section py-20">
+        <div class="container flex flex-col items-center text-center">
+            <h2 class="section-title mb-6">{{ aboutUs.title }}</h2>
+            <p class="section-subtitle max-w-2xl mb-8">{{ aboutUs.description }}</p>
+            <div class="about-us-cta">
                 <Link
-                    v-if="canRegister"
                     :href="route('register')"
-                    class="ml-4 font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                    class="btn-primary btn-lg rounded-full px-8 py-4 rounded-md hover:scale-105 transition-transform"
+                    aria-label="Junte-se ao UdiaNIX"
+                    title="Crie sua conta e comece a jogar"
                 >
-                    Registrar
+                    <i class="fa-solid fa-gamepad mr-2"></i>
+                    Jogar Agora
                 </Link>
-            </template>
+            </div>
         </div>
+    </section>
 
-        <div class="max-w-7xl mx-auto p-6 lg:p-8">
-            <div class="flex justify-center">
-                <ApplicationLogo class="h-16 w-auto" />
-            </div>
-
-            <div class="mt-16">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                    <a
-                        href="http://minecraft.udianix.com.br/rules"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 576 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V428.7c-2.7 1.1-5.4 2-8.2 2.7l-60.1 15c-3 .7-6 1.2-9 1.4c-.9 .1-1.8 .2-2.7 .2H240c-6.1 0-11.6-3.4-14.3-8.8l-8.8-17.7c-1.7-3.4-5.1-5.5-8.8-5.5s-7.2 2.1-8.8 5.5l-8.8 17.7c-2.9 5.9-9.2 9.4-15.7 8.8s-12.1-5.1-13.9-11.3L144 381l-9.8 32.8c-6.1 20.3-24.8 34.2-46 34.2H80c-8.8 0-16-7.2-16-16s7.2-16 16-16h8.2c7.1 0 13.3-4.6 15.3-11.4l14.9-49.5c3.4-11.3 13.8-19.1 25.6-19.1s22.2 7.8 25.6 19.1l11.6 38.6c7.4-6.2 16.8-9.7 26.8-9.7c15.9 0 30.4 9 37.5 23.2l4.4 8.8h8.9c-3.1-8.8-3.7-18.4-1.4-27.8l15-60.1c2.8-11.3 8.6-21.5 16.8-29.7L384 203.6V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM549.8 139.7c-15.6-15.6-40.9-15.6-56.6 0l-29.4 29.4 71 71 29.4-29.4c15.6-15.6 15.6-40.9 0-56.6l-14.4-14.4zM311.9 321c-4.1 4.1-7 9.2-8.4 14.9l-15 60.1c-1.4 5.5 .2 11.2 4.2 15.2s9.7 5.6 15.2 4.2l60.1-15c5.6-1.4 10.8-4.3 14.9-8.4L512.1 262.7l-71-71L311.9 321z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    Conheça as Regras do Servidor
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                Leia atentamente as regras do servidor antes de
-                                jogar para garantir uma experiência divertida e
-                                respeitosa para todos os jogadores.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a
-                        href="http://minecraft.udianix.com.br/factionCommands"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 512 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M489.2 287.9h-27.4c-2.6 0-4.6 2-4.6 4.6v32h-36.6V146.2c0-2.6-2-4.6-4.6-4.6h-27.4c-2.6 0-4.6 2-4.6 4.6v32h-36.6v-32c0-2.6-2-4.6-4.6-4.6h-27.4c-2.6 0-4.6 2-4.6 4.6v32h-36.6v-32c0-6-8-4.6-11.7-4.6v-38c8.3-2 17.1-3.4 25.7-3.4 10.9 0 20.9 4.3 31.4 4.3 4.6 0 27.7-1.1 27.7-8v-60c0-2.6-2-4.6-4.6-4.6-5.1 0-15.1 4.3-24 4.3-9.7 0-20.9-4.3-32.6-4.3-8 0-16 1.1-23.7 2.9v-4.9c5.4-2.6 9.1-8.3 9.1-14.3 0-20.7-31.4-20.8-31.4 0 0 6 3.7 11.7 9.1 14.3v111.7c-3.7 0-11.7-1.4-11.7 4.6v32h-36.6v-32c0-2.6-2-4.6-4.6-4.6h-27.4c-2.6 0-4.6 2-4.6 4.6v32H128v-32c0-2.6-2-4.6-4.6-4.6H96c-2.6 0-4.6 2-4.6 4.6v178.3H54.8v-32c0-2.6-2-4.6-4.6-4.6H22.8c-2.6 0-4.6 2-4.6 4.6V512h182.9v-96c0-72.6 109.7-72.6 109.7 0v96h182.9V292.5c.1-2.6-1.9-4.6-4.5-4.6zm-288.1-4.5c0 2.6-2 4.6-4.6 4.6h-27.4c-2.6 0-4.6-2-4.6-4.6v-64c0-2.6 2-4.6 4.6-4.6h27.4c2.6 0 4.6 2 4.6 4.6v64zm146.4 0c0 2.6-2 4.6-4.6 4.6h-27.4c-2.6 0-4.6-2-4.6-4.6v-64c0-2.6 2-4.6 4.6-4.6h27.4c2.6 0 4.6 2 4.6 4.6v64z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    Facções Medievais
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                Descubra o mundo emocionante das nossas facções
-                                medievais e mergulhe em uma experiência de jogo
-                                única. Acesse a página de comandos das facções
-                                para aprender mais.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a
-                        href="https://dynmap.udianix.com.br/?worldname=udianix.com.br&mapname=surface&zoom=5"
-                        target="_blank"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 576 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    Mapa do Servidor
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                Embarque em uma aventura épica com nosso mapa
-                                interativo em tempo real! Rastreie a localização
-                                dos jogadores, descubra construções majestosas e
-                                explore territórios desconhecidos. O mapa é o
-                                seu guia para o vasto mundo do nosso servidor
-                                Minecraft.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a
-                        href="http://minecraft.udianix.com.br/donations"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 576 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M312 24V34.5c6.4 1.2 12.6 2.7 18.2 4.2c12.8 3.4 20.4 16.6 17 29.4s-16.6 20.4-29.4 17c-10.9-2.9-21.1-4.9-30.2-5c-7.3-.1-14.7 1.7-19.4 4.4c-2.1 1.3-3.1 2.4-3.5 3c-.3 .5-.7 1.2-.7 2.8c0 .3 0 .5 0 .6c.2 .2 .9 1.2 3.3 2.6c5.8 3.5 14.4 6.2 27.4 10.1l.9 .3c11.1 3.3 25.9 7.8 37.9 15.3c13.7 8.6 26.1 22.9 26.4 44.9c.3 22.5-11.4 38.9-26.7 48.5c-6.7 4.1-13.9 7-21.3 8.8V232c0 13.3-10.7 24-24 24s-24-10.7-24-24V220.6c-9.5-2.3-18.2-5.3-25.6-7.8c-2.1-.7-4.1-1.4-6-2c-12.6-4.2-19.4-17.8-15.2-30.4s17.8-19.4 30.4-15.2c2.6 .9 5 1.7 7.3 2.5c13.6 4.6 23.4 7.9 33.9 8.3c8 .3 15.1-1.6 19.2-4.1c1.9-1.2 2.8-2.2 3.2-2.9c.4-.6 .9-1.8 .8-4.1l0-.2c0-1 0-2.1-4-4.6c-5.7-3.6-14.3-6.4-27.1-10.3l-1.9-.6c-10.8-3.2-25-7.5-36.4-14.4c-13.5-8.1-26.5-22-26.6-44.1c-.1-22.9 12.9-38.6 27.7-47.4c6.4-3.8 13.3-6.4 20.2-8.2V24c0-13.3 10.7-24 24-24s24 10.7 24 24zM568.2 336.3c13.1 17.8 9.3 42.8-8.5 55.9L433.1 485.5c-23.4 17.2-51.6 26.5-80.7 26.5H192 32c-17.7 0-32-14.3-32-32V416c0-17.7 14.3-32 32-32H68.8l44.9-36c22.7-18.2 50.9-28 80-28H272h16 64c17.7 0 32 14.3 32 32s-14.3 32-32 32H288 272c-8.8 0-16 7.2-16 16s7.2 16 16 16H392.6l119.7-88.2c17.8-13.1 42.8-9.3 55.9 8.5zM193.6 384l0 0-.9 0c.3 0 .6 0 .9 0z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    Doações
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                O servidor de Minecraft depende das doações para
-                                se manter online. Considere apoiar o servidor
-                                para garantir uma jogabilidade estável e
-                                atualizações frequentes.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a
-                        href="http://minecraft.udianix.com.br"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 576 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M208 64a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM9.8 214.8c5.1-12.2 19.1-18 31.4-12.9L60.7 210l22.9-38.1C99.9 144.6 129.3 128 161 128c51.4 0 97 32.9 113.3 81.7l34.6 103.7 79.3 33.1 34.2-45.6c6.4-8.5 16.6-13.3 27.2-12.8s20.3 6.4 25.8 15.5l96 160c5.9 9.9 6.1 22.2 .4 32.2s-16.3 16.2-27.8 16.2H288c-11.1 0-21.4-5.7-27.2-15.2s-6.4-21.2-1.4-31.1l16-32c5.4-10.8 16.5-17.7 28.6-17.7h32l22.5-30L22.8 246.2c-12.2-5.1-18-19.1-12.9-31.4zm82.8 91.8l112 48c11.8 5 19.4 16.6 19.4 29.4v96c0 17.7-14.3 32-32 32s-32-14.3-32-32V405.1l-60.6-26-37 111c-5.6 16.8-23.7 25.8-40.5 20.2S-3.9 486.6 1.6 469.9l48-144 11-33 32 13.7z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    Servidor em construção
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                O site está atualmente em construção. Pedimos
-                                desculpas por qualquer inconveniente e
-                                agradecemos a sua paciência.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a
-                        href="https://github.com/Unix-User/PhPMineServerManager"
-                        class="scale-100 p-6 bg-white dark:bg-gray-800/80 dark:bg-gradient-to-bl from-gray-700/80 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500"
-                    >
-                        <div>
-                            <div class="flex items-center">
-                                <div
-                                    class="h-12 w-12 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        height="1em"
-                                        viewBox="0 0 496 512"
-                                        fill="darkMode ? '#000000' : '#FFFFFF'"
-                                    >
-                                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"
-                                        />
-                                    </svg>
-                                </div>
-                                <h2
-                                    class="ml-3 text-xl font-semibold text-gray-900 dark:text-white"
-                                >
-                                    GitHub do Projeto
-                                </h2>
-                            </div>
-                            <p
-                                class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed"
-                            >
-                                A sua ajuda no nosso projeto GitHub é essencial!
-                                Contribua de diversas formas: codificando,
-                                reportando erros, sugerindo melhorias ou novas
-                                funcionalidades. Cada contribuição é um passo
-                                para a evolução do projeto. Visite nosso
-                                repositório no GitHub e junte-se a nós nessa
-                                jornada!
-                            </p>
-                        </div>
-                    </a>
+    <!-- Footer Section - Solid -->
+    <footer class="footer-section py-12 bg-gray-900">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h3 class="footer-title">Links Úteis</h3>
+                    <ul class="footer-links">
+                        <li><a href="http://minecraft.udianix.com.br/rules"><i class="fa-solid fa-book mr-2"></i> Regras
+                                do Servidor</a></li>
+                        <li><a href="http://minecraft.udianix.com.br/factionCommands"><i
+                                    class="fa-solid fa-shield-halved mr-2"></i> Comandos de Facções</a></li>
+                        <li><a href="https://dynmap.udianix.com.br" target="_blank"><i
+                                    class="fa-solid fa-map-location-dot mr-2"></i> Mapa Interativo</a></li>
+                        <li><a href="http://minecraft.udianix.com.br/donations"><i class="fa-solid fa-heart mr-2"></i>
+                                Apoie o Servidor</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">{{ aboutUs.title }}</h3>
+                    <p class="footer-description">{{ aboutUs.description }}</p>
+                </div>
+                <div>
+                    <h3 class="footer-title">Contato</h3>
+                    <ul class="footer-links">
+                        <li><a href="mailto:sac@udianix.com.br"><i class="fa-solid fa-envelope mr-2"></i> sac@udianix.com.br</a></li>
+                        <li><a href="https://discord.gg/F9wYVYmqW3" target="_blank"><i class="fa-brands fa-discord mr-2"></i> discord.gg/F9wYVYmqW3</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Redes Sociais</h3>
+                    <div class="footer-social-icons">
+                        <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://discord.gg/F9wYVYmqW3" target="_blank" class="social-icon"><i
+                                class="fa-brands fa-discord"></i></a>
+                    </div>
                 </div>
             </div>
-
-            <div
-                class="flex flex-col justify-center mt-16 px-6 sm:items-center sm:justify-between sm:flex-row"
-            >
-                <div
-                    class="text-center text-sm text-green-300 dark:text-green-400 sm:text-left"
-                >
-                    <span
-                        aria-hidden="true"
-                        class="text-green-400 dark:text-green-600"
-                    >
-                        GitHub de
-                        <a
-                            href="https://github.com/Unix-User"
-                            target="_blank"
-                            class="group inline-flex items-center hover:text-green-700 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
-                        >
-                            Unix-User &nbsp
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                height="1em"
-                                viewBox="0 0 512 512"
-                                :fill="darkMode ? '#000000' : '#FFFFFF'"
-                            >
-                                <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                <path
-                                    d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-                                />
-                            </svg>
-                        </a>
-                    </span>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2024 UdiaNIX Minecraft. Todos os direitos reservados.
                 </div>
-
-                <div
-                    class="mt-4 text-center text-sm text-green-300 dark:text-green-400 sm:mt-0 sm:text-left"
-                >
-                    <span>Desenvolvido com</span>
-                    <a
-                        href="https://laravel.com"
-                        target="_blank"
-                        class="ml-1 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 focus:outline focus:outline-2 focus:outline-blue-500"
-                        >Laravel
-                    </a>
-                    <span>e</span>
-                    <a
-                        href="https://vuejs.org"
-                        target="_blank"
-                        class="ml-1 text-green-500 hover:text-green-600 dark:hover:text-green-400 focus:outline focus:outline-2 focus:outline-green-500"
-                        >Vue.js
-                    </a>
+                <div class="footer-credits">
+                    Desenvolvido com <a href="https://laravel.com" target="_blank">Laravel</a> e <a
+                        href="https://vuejs.org" target="_blank">Vue.js</a>.
                 </div>
             </div>
         </div>
+    </footer>
+
+    <!-- Global Login/Register Links -->
+    <div v-if="canLogin" class="auth-links">
+        <Link v-if="$page.props.auth.user" :href="route('dashboard')">
+        Painel
+        </Link>
+        <template v-else>
+            <Link :href="route('login')">
+            Entrar
+            </Link>
+            <Link v-if="canRegister" :href="route('register')">
+            Registrar
+            </Link>
+        </template>
+    </div>
     </div>
 </template>
+<style scoped>
+/* General Styles */
+@import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
 
+body {
+    /* background-image: url('/storage/background.png'); - Removed from body */
+    background-blend-mode: overlay;
+}
+
+.landing-page-background { /* Added class for background */
+    background-image: url('/storage/background.png');
+    @apply bg-no-repeat bg-cover bg-fixed; /* bg-fixed for fixed background */
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Reduced translateY for smoother animation */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards; /* Slightly faster animation */
+}
+
+.container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.section-title {
+    @apply text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white text-center; /* Dark text for light, white for dark */
+}
+
+.section-subtitle {
+    @apply text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto text-center; /* Adjusted gray shades for better contrast */
+}
+
+.section-title-inverted {
+    @apply text-3xl md:text-4xl font-bold mb-6 text-white dark:text-white text-center; /* Inverted titles are always white */
+}
+
+.section-subtitle-inverted {
+    @apply text-lg text-gray-200 dark:text-gray-200 max-w-3xl mx-auto text-center; /* Inverted subtitles are always light gray */
+}
+
+.btn {
+    @apply px-6 py-3 rounded-md font-semibold text-center transition-all duration-300 hover:scale-105 inline-block border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-orange-500; /* Added focus styles and rounded-md, changed focus color */
+}
+
+.btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white dark:text-gray-900 dark:bg-orange-500 hover:dark:bg-orange-600 border-blue-500 hover:border-blue-600 dark:border-orange-500 hover:dark:border-orange-600; /* Light mode blue, Dark mode orange */
+}
+
+.btn-secondary {
+    @apply bg-green-500 hover:bg-green-600 text-white dark:text-gray-900 dark:bg-teal-500 hover:dark:bg-teal-600 border-green-500 hover:border-green-600 dark:border-teal-500 hover:dark:border-teal-600; /* Light mode green, Dark mode teal */
+}
+
+.btn-lg {
+    @apply text-lg px-8 py-4;
+}
+
+.btn-hero {
+    @apply btn-lg text-xl;
+}
+
+.btn-discord {
+    @apply bg-indigo-500 hover:bg-indigo-600 text-white dark:text-gray-900 dark:bg-purple-500 hover:dark:bg-purple-600 border-indigo-500 hover:border-indigo-600 dark:border-purple-500 hover:dark:border-purple-600; /* Light mode indigo, Dark mode purple */
+}
+
+/* Hero Section */
+.hero-section {
+    @apply relative overflow-hidden; /* Transparent background for both themes */
+}
+
+.hero-video {
+    @apply absolute inset-0 w-full h-full object-cover z-0; /* Adjusted opacity for better balance in both themes */
+    /* Even more transparent video */
+}
+
+.hero-overlay {
+    @apply absolute inset-0 bg-black/30 dark:bg-black/70 z-10; /* Slightly adjusted overlay transparency */
+}
+
+.hero-content {
+    @apply relative z-20 py-32 md:py-64 text-center text-gray-900 dark:text-white; /* Dark text for light, white for dark */
+}
+
+.hero-title {
+    @apply text-4xl md:text-6xl font-bold mb-6;
+}
+
+.hero-subtitle {
+    @apply text-lg md:text-2xl text-gray-500 dark:text-gray-300 mb-12 max-w-2xl mx-auto; /* Adjusted gray shades for subtitle */
+}
+
+.hero-buttons {
+    @apply space-x-4;
+}
+
+/* Highlights Section */
+.highlights-section {
+    @apply py-16 bg-transparent dark:bg-transparent; /* Transparent background for highlights section */
+    /* Solid background - changed to gray-800 for better contrast with transparent sections */
+}
+
+.highlights-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8 mt-12;
+}
+
+.highlight-card {
+    @apply bg-white/60 dark:bg-gray-700/60 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow text-center backdrop-blur-sm; /*  White/60 for light, gray-700/60 for dark, backdrop-blur */
+    /* Even more transparent card background */
+}
+
+.highlight-icon {
+    @apply text-green-500 dark:text-orange-400 text-4xl mb-4; /* Light mode green, Dark mode orange */
+}
+
+.highlight-title {
+    @apply text-2xl font-bold mb-4 text-gray-900 dark:text-white; /* Dark text for light mode, white for dark mode */
+}
+
+.highlight-description {
+    @apply text-gray-500 dark:text-gray-400; /* Adjusted gray shades */
+}
+
+/* Carousel Section */
+.carousel-section {
+    @apply py-20 bg-transparent dark:bg-transparent; /* Transparent background for carousel section */
+    /* Transparent background - reduced transparency to /60 from /10 for better text readability */
+}
+
+.carousel-wrapper {
+    @apply relative mt-12;
+}
+
+.carousel-container {
+    @apply relative w-full overflow-hidden;
+}
+
+.carousel-item {
+    @apply absolute transition-opacity duration-1000 ease-in-out inset-0 opacity-0;
+}
+
+.carousel-item.active {
+    @apply opacity-100 relative;
+}
+
+.carousel-image {
+    @apply block w-full h-[500px] object-cover rounded-xl shadow-lg;
+}
+
+.carousel-content {
+    @apply absolute inset-0 bg-white/30 dark:bg-black/30 flex flex-col justify-center items-center text-center p-8 backdrop-blur-sm; /* White/30 for light, black/30 for dark, backdrop-blur */
+    /* Even more transparent carousel content overlay */
+}
+
+.carousel-title {
+    @apply text-3xl font-bold text-gray-900 dark:text-white mb-4 animate-fade-in-up; /* Dark text for light, white for dark */
+}
+
+.carousel-subtitle {
+    @apply text-xl text-gray-500 dark:text-gray-300 mb-8 animate-fade-in-up delay-100 max-w-xl mx-auto; /* Adjusted gray shades for subtitle */
+}
+
+.btn-carousel {
+    @apply animate-fade-in-up delay-200;
+}
+
+.carousel-controls {
+    @apply absolute top-1/2 transform -translate-y-1/2 w-full flex justify-between px-4 md:px-8;
+}
+
+.carousel-control-button {
+    @apply p-3 bg-white/40 dark:bg-gray-800/40 text-gray-900 dark:text-gray-100 rounded-full hover:bg-white/5 dark:hover:bg-gray-700 transition-colors hover:scale-110; /* White/40 for light, gray-800/40 for dark */
+    /* Even more transparent control buttons */
+}
+
+.carousel-control-button i {
+    @apply text-xl;
+}
+
+/* Detailed Features Section */
+.detailed-features-section {
+    @apply py-20 bg-transparent dark:bg-transparent; /* Transparent background for detailed features */
+    /* Solid background - changed to gray-800 for better contrast with transparent sections */
+}
+
+.detailed-features-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16;
+}
+
+.detailed-feature-card {
+    @apply bg-white/60 dark:bg-gray-700/60 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm; /* White/60 for light, gray-700/60 for dark, backdrop-blur */
+    /* Even more transparent card background */
+}
+
+.detailed-feature-icon {
+    @apply mb-4 text-green-500 dark:text-orange-400 text-3xl; /* Light mode green, Dark mode orange */
+}
+
+.detailed-feature-title {
+    @apply text-xl font-semibold mb-2 text-gray-900 dark:text-white; /* Dark text for light mode, white for dark mode */
+}
+
+.detailed-feature-description {
+    @apply text-gray-500 dark:text-gray-400; /* Adjusted gray shades */
+}
+
+.detailed-feature-link {
+    @apply mt-3 inline-flex items-center text-green-500 dark:text-orange-400 hover:text-green-600 dark:hover:text-orange-500 transition-colors font-semibold; /* Light mode green, Dark mode orange, adjusted hover */
+}
+
+/* Gameplay Section */
+.gameplay-section {
+    @apply py-20 text-gray-900 dark:text-white  bg-white/60  dark:bg-gray-800/60; /* Transparent background for gameplay section */
+    /* Transparent background - reduced transparency to /60 from /10 for better text readability */
+}
+
+.gameplay-grid {
+    @apply container grid grid-cols-1 lg:grid-cols-2 gap-16 items-center;
+}
+
+.gameplay-steps {
+    @apply list-decimal pl-5 mt-8 space-y-4 text-lg text-gray-500 dark:text-gray-400; /* Adjusted gray shades */
+}
+
+.gameplay-steps li {
+    @apply relative pl-6;
+}
+
+.step-number {
+    @apply absolute left-0 top-0 font-semibold text-green-500 dark:text-orange-400; /* Light mode green, Dark mode orange */
+}
+
+.gameplay-extra-info {
+    @apply mt-8 text-gray-500 dark:text-gray-400; /* Adjusted gray shades */
+}
+
+.gameplay-discord-button {
+    @apply mt-6;
+}
+
+.gameplay-image-container {
+    @apply flex justify-center;
+}
+
+.gameplay-image {
+    @apply rounded-xl shadow-lg max-w-full h-auto opacity-50;
+    /* Slightly more transparent image */
+}
+
+/* Testimonials Section */
+.testimonials-section {
+    @apply py-16 bg-transparent dark:bg-transparent; /* Transparent background for testimonials */
+    /* Solid background - changed to gray-800 for better contrast with transparent sections */
+}
+
+.testimonials-grid {
+    @apply mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+}
+
+.testimonial-card {
+    @apply p-6 bg-white/60 dark:bg-gray-700/60 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center relative backdrop-blur-sm; /* White/60 for light, gray-700/60 for dark, backdrop-blur */
+    /* Even more transparent card background */
+}
+
+.testimonial-quote-icon {
+    @apply absolute top-4 left-4 text-gray-300 dark:text-gray-600 text-2xl opacity-20; /* Adjusted icon opacity and color, lighter gray for light */
+    /* Slightly more transparent icon */
+}
+
+.testimonial-text {
+    @apply text-gray-500 dark:text-gray-400 italic mb-4; /* Adjusted gray shades */
+}
+
+.testimonial-author {
+    @apply font-semibold text-green-500 dark:text-orange-400; /* Light mode green, Dark mode orange */
+}
+
+/* About Us Section */
+.about-us-section {
+    @apply py-20 text-gray-900 dark:text-white bg-white/60 dark:bg-gray-800/60; /* Transparent background for about us, dark text for light, white for dark */
+    /* Transparent background - reduced transparency to /60 from /10 for better text readability */
+}
+
+.about-us-cta {
+    @apply mt-12;
+}
+
+/* Footer Section */
+.footer-section {
+    @apply text-gray-500 dark:text-gray-400 py-12; /* Transparent background for footer, adjusted text color */
+    /* Solid background - changed to gray-800 for better contrast with transparent sections */
+}
+
+.footer-grid {
+    @apply grid grid-cols-1 md:grid-cols-4 gap-12 container;
+}
+
+.footer-title {
+    @apply text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4; /* Darker gray for title in light mode */
+}
+
+.footer-description {
+    @apply text-gray-500 dark:text-gray-400; /* Adjusted gray shades */
+}
+
+.footer-links {
+    @apply space-y-2;
+}
+
+.footer-links li a {
+    @apply text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-orange-400 transition-colors block inline-flex items-center; /* Adjusted gray shades, light mode green, dark mode orange hover */
+}
+
+.footer-social-icons {
+    @apply flex space-x-4 justify-center md:justify-start;
+}
+
+.social-icon {
+    @apply text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-orange-400 transition-colors inline-flex; /* Adjusted gray shades, light mode green, dark mode orange hover */
+}
+
+.social-icon i {
+    @apply text-lg;
+}
+
+.footer-bottom {
+    @apply mt-12 pt-6 border-t border-gray-300/10 dark:border-gray-700/10 text-sm flex flex-col sm:flex-row justify-between items-center container; /* Adjusted border color, lighter gray for light */
+    /* Even more transparent border */
+}
+
+.footer-copyright {
+    @apply text-center text-gray-500 dark:text-gray-500 sm:text-left; /* Adjusted gray shades */
+}
+
+.footer-credits {
+    @apply mt-4 text-center text-gray-500 dark:text-gray-500 sm:mt-0 sm:text-left; /* Adjusted gray shades */
+}
+
+.footer-credits a {
+    @apply text-blue-500 hover:text-blue-600 dark:hover:text-teal-400 focus:outline focus:outline-2 focus:outline-blue-500 dark:focus:outline-teal-500; /* Light mode blue, Dark mode teal, adjusted focus */
+}
+
+/* Auth Links */
+.auth-links {
+    @apply sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10 hidden sm:block;
+}
+
+.auth-links>* {
+    @apply font-semibold text-green-500 hover:text-green-600 dark:text-orange-400 dark:hover:text-orange-500 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500 ml-4; /* Light mode green, Dark mode orange, adjusted hover */
+}
+
+.auth-links>*:first-child {
+    @apply ml-0;
+}
+
+/* Utility function for feature icons - if you need more icons, expand here */
+.detailed-feature-icon.icon-rules {}
+
+.detailed-feature-icon.icon-commands {}
+
+.detailed-feature-icon.icon-map {}
+
+.detailed-feature-icon.icon-support {}
+</style>
