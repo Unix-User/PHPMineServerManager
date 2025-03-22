@@ -13,10 +13,10 @@ use App\Services\DiscordBotService;
 
 class DiscordController extends Controller
 {
-    private $discordToken; 
-    private $channelId; 
-    private $updateChannelId; 
-    private $serverId; 
+    private $discordToken;
+    private $channelId;
+    private $updateChannelId;
+    private $serverId;
     private $headers;
     private $mrRobotId;
     protected $discordService;
@@ -120,9 +120,19 @@ class DiscordController extends Controller
     private function processMessages($channelId, OllamaService $ollamaService)
     {
         $response = $this->sendRequest('GET', "/channels/{$channelId}/messages");
-        
+
+        if (is_array($response) && isset($response['message'])) {
+            Log::error('Erro ao obter mensagens do canal', ['channelId' => $channelId, 'error' => $response['message'], 'code' => $response['code'] ?? 'N/A']);
+            return;
+        }
+
+        if (!is_array($response)) {
+            Log::error('Resposta inesperada da API do Discord ao obter mensagens do canal', ['channelId' => $channelId, 'response' => $response]);
+            return;
+        }
+
         $processedMessages = Cache::get('processed_discord_messages_' . $channelId, []);
-        
+
         foreach ($response as $message) {
             if (!in_array($message['id'], $processedMessages) && $message['author']['id'] !== $this->mrRobotId) {
                 if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
@@ -145,7 +155,7 @@ class DiscordController extends Controller
             'author' => $message['author']['username'],
             'content' => $message['content']
         ]);
-        
+
         try {
             $response = $ollamaService->generate([
                 'model' => env('OLLAMA_MODEL', 'llama3.2'),
@@ -181,7 +191,7 @@ class DiscordController extends Controller
             'author' => $message['author']['username'],
             'content' => $message['content']
         ]);
-        
+
         try {
             $response = $ollamaService->generate([
                 'model' => env('OLLAMA_MODEL', 'llama3.2'),
@@ -260,19 +270,26 @@ class DiscordController extends Controller
     {
         $baseUrl = 'https://discord.com/api/v10';
         $url = $baseUrl . $endpoint;
-        
+
         try {
             $response = Http::withHeaders($this->headers)->$method($url, $data);
-            
+
             if ($response->failed()) {
+                $body = null;
+                try {
+                    $body = $response->json();
+                } catch (\Exception $e) {
+                    $body = $response->body();
+                }
+
                 Log::error('Discord API request failed', [
                     'url' => $url,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $body
                 ]);
                 return ['message' => 'Erro ao processar a solicitação', 'code' => $response->status()];
             }
-            
+
             return $response->json();
         } catch (\Exception $e) {
             Log::error('Exception in Discord API request', [
@@ -302,13 +319,13 @@ class DiscordController extends Controller
         }
 
         switch ($payload['type']) {
-            case 1: 
+            case 1:
                 return response()->json(['type' => 1]);
-            
-            case 2: 
+
+            case 2:
                 return $this->handleApplicationCommand($payload);
-            
-            case 3: 
+
+            case 3:
                 return $this->handleMessageComponent($payload);
         }
 
