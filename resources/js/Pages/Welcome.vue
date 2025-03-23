@@ -24,7 +24,7 @@ defineProps({
         >
             <Link
                 v-if="$page.props.auth.user"
-                :href="route('dashboard')"
+                :href="route('home')"
                 class="font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
             >
                 Painel

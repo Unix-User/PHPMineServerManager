@@ -2,6 +2,69 @@
 import { ref, onMounted, watchEffect } from "vue";
 import axios from "axios";
 
+const props = defineProps({
+    fetchFileListUrl: {
+        type: String,
+        required: true,
+    },
+    fetchBusyStatusUrl: {
+        type: String,
+        default: null, // Opcional, pode não ter status ocupado
+    },
+    downloadFileUrlPrefix: {
+        type: String,
+        required: true,
+    },
+    componentTitle: {
+        type: String,
+        default: 'Navegador de Arquivos',
+    },
+    folderLabel: {
+        type: String,
+        default: 'Pasta',
+    },
+    fileLabel: {
+        type: String,
+        default: 'Arquivo',
+    },
+    loadingMessage: {
+        type: String,
+        default: 'Carregando arquivos...',
+    },
+    noFilesMessage: {
+        type: String,
+        default: 'Nenhum arquivo encontrado nesta pasta.',
+    },
+    authErrorMessage: {
+        type: String,
+        default: 'Erro de autenticação. Por favor, faça login novamente.',
+    },
+    fetchErrorMessage: {
+        type: String,
+        default: 'Erro ao carregar arquivos:',
+    },
+    downloadErrorMessage: {
+        type: String,
+        default: 'Erro ao baixar o arquivo:',
+    },
+    tryAgainButtonLabel: {
+        type: String,
+        default: 'Tentar novamente',
+    },
+    backButtonLabel: {
+        type: String,
+        default: '← Voltar',
+    },
+    descriptionText: {
+        type: String,
+        default: '', // Pode ser deixado vazio para não exibir descrição
+    },
+    isFolder: {
+        type: Function,
+        required: true, // Função para detectar pasta, agora é obrigatória e definida pelo usuário
+    },
+});
+
 // Estado reativo
 const isLoading = ref(false);
 const authError = ref(null);
@@ -9,10 +72,11 @@ const fileList = ref([]);
 const currentFolderId = ref('root');
 const folderHistory = ref(['root']);
 
-// Função para buscar status
+// Função para buscar status ocupado (opcional)
 const fetchBusyStatus = async () => {
+    if (!props.fetchBusyStatusUrl) return; // Se não houver URL, não busca status
     try {
-        const response = await axios.get("/api/status/busy"); // Rota corrigida
+        const response = await axios.get(props.fetchBusyStatusUrl);
         isLoading.value = response.data.isBusy === true;
     } catch (error) {
         console.error(`Erro ao buscar status: ${error.message}`);
@@ -26,32 +90,32 @@ const fetchFileList = async () => {
     fileList.value = [];
 
     try {
-        const response = await axios.get('/api/drive/files', { // Rota corrigida
+        const response = await axios.get(props.fetchFileListUrl, {
             params: {
                 folderId: currentFolderId.value
             }
         });
 
         fileList.value = response.data.files.sort((a, b) => {
-            if (a.mimeType === 'application/vnd.google-apps.folder') return -1;
-            if (b.mimeType === 'application/vnd.google-apps.folder') return 1;
+            if (props.isFolder(a)) return -1;
+            if (props.isFolder(b)) return 1;
             return 0;
         });
     } catch (error) {
-        handleDriveError(error);
+        handleError(error);
     } finally {
         isLoading.value = false;
     }
 };
 
-// Tratamento de erros
-const handleDriveError = (error) => {
+// Tratamento de erros genérico
+const handleError = (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-        authError.value = 'Erro de autenticação. Por favor, faça login novamente.';
+        authError.value = props.authErrorMessage;
     } else if (error.response?.status === 404) {
         authError.value = 'Rota não encontrada. Contate o administrador.';
     } else {
-        authError.value = 'Erro ao carregar arquivos: ' + error.message;
+        authError.value = `${props.fetchErrorMessage} ${error.message}`;
     }
 };
 
@@ -73,7 +137,7 @@ const navigateBack = () => {
 // Download de arquivos
 const downloadFile = async (file) => {
     try {
-        const response = await axios.get(`/api/drive/download/${file.id}`, { // Rota corrigida
+        const response = await axios.get(`${props.downloadFileUrlPrefix}/${file.id}`, {
             responseType: 'blob'
         });
 
@@ -86,7 +150,7 @@ const downloadFile = async (file) => {
         window.URL.revokeObjectURL(url);
         link.remove();
     } catch (error) {
-        alert("Erro ao baixar o arquivo: " + error.message);
+        alert(`${props.downloadErrorMessage} ${error.message}`);
     }
 };
 
@@ -96,7 +160,9 @@ watchEffect(() => {
 });
 
 onMounted(async () => {
-    await fetchBusyStatus();
+    if (props.fetchBusyStatusUrl) {
+        await fetchBusyStatus();
+    }
     fetchFileList();
 });
 </script>
@@ -111,10 +177,10 @@ onMounted(async () => {
                     class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                     aria-label="Voltar para pasta anterior"
                 >
-                    ← Voltar
+                    {{ backButtonLabel }}
                 </button>
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors">
-                    Google Drive Backups
+                    {{ componentTitle }}
                 </h2>
             </div>
             <div v-if="isLoading" class="flex items-center text-blue-600 dark:text-blue-400 transition-colors">
@@ -132,7 +198,7 @@ onMounted(async () => {
                 @click="fetchFileList"
                 class="ml-2 text-blue-600 hover:text-blue-800 underline"
             >
-                Tentar novamente
+                {{ tryAgainButtonLabel }}
             </button>
         </div>
 
@@ -140,29 +206,29 @@ onMounted(async () => {
             <div class="max-w-md w-full space-y-4 text-center">
                 <ul v-if="fileList.length > 0" class="file-list space-y-2">
                     <li v-for="file in fileList" :key="file.id" class="file-item rounded-lg p-3 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors">
-                        <button v-if="file.mimeType === 'application/vnd.google-apps.folder'" @click="navigateToFolder(file.id)" class="file-link folder w-full text-left">
-                            <i class="fas fa-folder mr-2 text-yellow-400"></i> {{ file.name }}
+                        <button v-if="props.isFolder(file)" @click="navigateToFolder(file.id)" class="file-link folder w-full text-left">
+                            <i class="fas fa-folder mr-2 text-yellow-400"></i> {{ file.name }} ({{ folderLabel }})
                         </button>
                         <a v-else @click.prevent="downloadFile(file)" class="file-link file w-full text-left block">
-                            <i class="fas fa-file mr-2 text-blue-400"></i> {{ file.name }}
+                            <i class="fas fa-file mr-2 text-blue-400"></i> {{ file.name }} ({{ fileLabel }})
                         </a>
                     </li>
                 </ul>
                 <div v-else-if="!isLoading" class="p-4 text-center text-gray-600 dark:text-gray-300">
                     <i class="fas fa-inbox text-3xl mb-2 text-gray-400"></i>
-                    <p>Nenhum backup encontrado nesta pasta.</p>
+                    <p>{{ noFilesMessage }}</p>
                 </div>
                 <div v-if="isLoading" class="flex justify-center p-4">
                     <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Carregando arquivos...
+                    {{ loadingMessage }}
                 </div>
             </div>
         </div>
-        <div class="mt-4 text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
-            <p>Os backups são atualizados automaticamente a cada 24 horas. Clique em um arquivo para fazer o download.</p>
+        <div v-if="descriptionText" class="mt-4 text-sm text-gray-600 dark:text-gray-300 transition-colors duration-300">
+            <p>{{ descriptionText }}</p>
         </div>
     </div>
 </template>

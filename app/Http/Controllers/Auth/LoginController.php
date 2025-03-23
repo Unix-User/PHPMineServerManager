@@ -32,7 +32,7 @@ class LoginController extends Controller
         $user = Socialite::driver($provider)->user();
         $this->handleUser($user);
 
-        return redirect('/dashboard');
+        return redirect('/home');
     }
 
     private function handleUser($user)

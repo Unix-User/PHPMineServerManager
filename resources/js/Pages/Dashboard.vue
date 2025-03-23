@@ -3,6 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Welcome from '@/Components/Welcome.vue';
 import RconConsole from '@/Components/RconConsole.vue';
 import GoogleDriveBackups from '@/Components/GoogleDriveBackups.vue';
+import FileManager from '@/Components/FileManager.vue';
 </script>
 
 <template>
@@ -19,6 +20,7 @@ import GoogleDriveBackups from '@/Components/GoogleDriveBackups.vue';
                     <div class="p-6 sm:p-8">
                         <RconConsole class="transition-opacity duration-300 hover:opacity-90" />
                         <GoogleDriveBackups class="transition-opacity duration-300 hover:opacity-90 mt-6" />
+                        <FileManager class="transition-opacity duration-300 hover:opacity-90 mt-6" />
                     </div>
                 </div>
             </div>
