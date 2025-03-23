@@ -17,7 +17,7 @@ import GoogleDriveBackups from '@/Components/GoogleDriveBackups.vue';
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm overflow-hidden shadow-xl rounded-lg transition-all duration-300 ease-in-out hover:shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
                     <div class="p-6 sm:p-8">
-                        <RconConsole class="transition-opacity duration-300 hover:opacity-90 mt-6" />
+                        <RconConsole class="transition-opacity duration-300 hover:opacity-90" />
                         <GoogleDriveBackups class="transition-opacity duration-300 hover:opacity-90 mt-6" />
                     </div>
                 </div>
