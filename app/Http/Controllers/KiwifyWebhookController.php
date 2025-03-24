@@ -9,61 +9,63 @@ class KiwifyWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        // 1. Obter os dados do payload do webhook
-        // Kiwify envia o payload no corpo da requisição como JSON
-        $payload = $request->json()->all();
+        // Logar o recebimento inicial do webhook
+        Log::info('Início do processamento do webhook da Kiwify');
 
-        // 2. [Importante] Verificar a assinatura do webhook (segurança)
-        // A assinatura agora vem como parâmetro GET 'signature'
+        // 1. Obter os dados do payload do webhook
+        $payload = $request->json()->all();
+        Log::debug('Payload recebido:', $payload);
+
+        // 2. Verificar a assinatura do webhook
         $signature = $request->query('signature');
-        $secretKey = env('KIWIFY_WEBHOOK_SECRET'); // Seu segredo webhook da Kiwify
+        $secretKey = env('KIWIFY_WEBHOOK_SECRET');
+        Log::debug('Assinatura recebida:', ['signature' => $signature]);
 
         if (!$this->verifySignature($payload, $signature, $secretKey)) {
-            Log::warning('Webhook da Kiwify: Assinatura inválida.');
-            return response()->json(['error' => 'Incorrect signature'], 400); // Retornar erro 400 com JSON
+            Log::warning('Webhook da Kiwify: Assinatura inválida.', [
+                'received_signature' => $signature,
+                'payload' => $payload
+            ]);
+            return response()->json(['error' => 'Incorrect signature'], 400);
         }
+
+        Log::info('Assinatura do webhook validada com sucesso');
 
         // 3. Processar o payload do webhook
-        Log::info('Webhook da Kiwify recebido:', $payload);
+        Log::info('Webhook da Kiwify recebido:', [
+            'event' => $payload['event'] ?? 'unknown',
+            'payload' => $payload
+        ]);
 
-        // Adicione aqui a lógica para processar os eventos da Kiwify
-        // Exemplo:
         if (isset($payload['event'])) {
+            Log::info('Evento detectado: ' . $payload['event']);
+            
             if ($payload['event'] === 'order.paid') {
-                // Lógica para pedido pago
-                Log::info('Evento: Pedido Pago', $payload);
+                Log::info('Processando evento: Pedido Pago', $payload);
                 // ... sua lógica aqui ...
             } elseif ($payload['event'] === 'product.updated') {
-                // Lógica para produto atualizado
-                Log::info('Evento: Produto Atualizado', $payload);
+                Log::info('Processando evento: Produto Atualizado', $payload);
                 // ... sua lógica aqui ...
             }
-            // ... adicione outros eventos que você precisa tratar ...
+        } else {
+            Log::warning('Webhook recebido sem evento definido', $payload);
         }
 
-        // 4. Responder com um status 200 OK e JSON {'status' => 'ok'}
+        // 4. Responder com sucesso
+        Log::info('Webhook processado com sucesso');
         return response()->json(['status' => 'ok'], 200);
     }
 
-    /**
-     * Verifica a assinatura do webhook da Kiwify usando HMAC-SHA1.
-     * Adaptação do código PHP fornecido.
-     *
-     * @param array $payload
-     * @param string|null $signatureQueryString
-     * @param string $secretKey
-     * @return bool
-     */
     private function verifySignature(array $payload, ?string $signatureQueryString, string $secretKey): bool
     {
         if (!$signatureQueryString) {
-            return false; // Sem assinatura na query string, inválido
+            Log::warning('Tentativa de verificação de assinatura sem signature');
+            return false;
         }
 
-        // Usar HMAC-SHA1 conforme o exemplo de código PHP
         $calculatedSignature = hash_hmac('sha1', json_encode($payload), $secretKey);
+        Log::debug('Assinatura calculada:', ['calculated_signature' => $calculatedSignature]);
 
-        // Comparar as assinaturas
         return hash_equals($signatureQueryString, $calculatedSignature);
     }
 }
