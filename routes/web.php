@@ -117,7 +117,7 @@ Route::middleware([
 
     Route::get('/dashboard', function () {
         if (Auth::user()->roles->pluck('name')->contains('admin')) {
-            Inertia::render('Dashboard');
+            return Inertia::render('Dashboard');
         } else {
             abort(403, 'Unauthorized');
         }
