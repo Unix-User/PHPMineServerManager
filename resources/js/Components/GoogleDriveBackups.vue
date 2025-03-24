@@ -1,41 +1,106 @@
 <script setup>
-import { ref, onMounted, watchEffect } from "vue";
-import axios from "axios";
+import { ref, onMounted, watch } from "vue";
+
+// Constantes reutilizáveis
+const MIME_TYPES = {
+    FOLDER: 'application/vnd.google-apps.folder'
+};
 
 // Estado reativo
 const isLoading = ref(false);
 const authError = ref(null);
 const fileList = ref([]);
 const currentFolderId = ref('root');
-const folderHistory = ref(['root']);
+const currentFolderName = ref('Meu Drive');
+const folderHistory = ref([{id: 'root', name: 'Meu Drive'}]);
+const downloadError = ref(null);
 
-// Função para buscar status
-const fetchBusyStatus = async () => {
-    try {
-        const response = await axios.get("/api/status/busy"); // Rota corrigida
-        isLoading.value = response.data.isBusy === true;
-    } catch (error) {
-        console.error(`Erro ao buscar status: ${error.message}`);
-        authError.value = 'Erro ao conectar ao servidor. Tente novamente mais tarde.';
-    }
+// Verifica se o gapi está carregado
+const isGapiLoaded = ref(false);
+
+// Função para inicializar o gapi com tratamento de CSP
+const initGapi = () => {
+    return new Promise((resolve, reject) => {
+        // Verifica se o script já foi carregado
+        if (window.gapi) {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = () => {
+            gapi.load('client:auth2', {
+                timeout: 10000, // Timeout de 10 segundos
+                callback: () => {
+                    gapi.client.init({
+                        'apiKey': import.meta.env.VITE_GOOGLE_API_KEY,
+                        'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                        'clientId': import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                        'scope': 'https://www.googleapis.com/auth/drive.readonly'
+                    }).then(() => {
+                        isGapiLoaded.value = true;
+                        resolve();
+                    }).catch(error => {
+                        console.error('Erro ao inicializar gapi.client:', error);
+                        reject(new Error('Falha ao inicializar a API do Google Drive'));
+                    });
+                },
+                onerror: (error) => {
+                    console.error('Erro ao carregar gapi.client:', error);
+                    reject(new Error('Falha ao carregar a API do Google Drive'));
+                }
+            });
+        };
+        script.onerror = (error) => {
+            console.error('Erro ao carregar script da API:', error);
+            reject(new Error('Falha ao carregar o script da API do Google'));
+        };
+        document.head.appendChild(script);
+    });
 };
 
-// Função para listar arquivos
+// Função para listar arquivos com tratamento de erros aprimorado
 const fetchFileList = async () => {
-    isLoading.value = true;
-    fileList.value = [];
+    if (!isGapiLoaded.value) {
+        try {
+            await initGapi();
+        } catch (error) {
+            authError.value = 'Erro ao carregar a API do Google Drive: ' + error.message;
+            return;
+        }
+    }
 
+    isLoading.value = true;
+    
     try {
-        const response = await axios.get('/api/drive/files', { // Rota corrigida
-            params: {
-                folderId: currentFolderId.value
-            }
+        // Se não for a pasta raiz, busca o nome da pasta atual
+        if (currentFolderId.value !== 'root') {
+            const folderInfo = await gapi.client.drive.files.get({
+                fileId: currentFolderId.value,
+                fields: 'name'
+            });
+            currentFolderName.value = folderInfo.result.name;
+        } else {
+            currentFolderName.value = 'Meu Drive';
+        }
+
+        // Usando a API do Google Drive com tratamento de erros
+        const response = await gapi.client.drive.files.list({
+            q: `'${currentFolderId.value}' in parents and trashed = false`,
+            fields: 'files(id, name, mimeType)',
+            orderBy: 'name',
+            timeout: 10000 // Timeout de 10 segundos
         });
 
-        fileList.value = response.data.files.sort((a, b) => {
-            if (a.mimeType === 'application/vnd.google-apps.folder') return -1;
-            if (b.mimeType === 'application/vnd.google-apps.folder') return 1;
-            return 0;
+        if (!response || !response.result || !response.result.files) {
+            throw new Error('Resposta inválida da API do Google Drive');
+        }
+
+        fileList.value = response.result.files.sort((a, b) => {
+            const isAFolder = a.mimeType === MIME_TYPES.FOLDER;
+            const isBFolder = b.mimeType === MIME_TYPES.FOLDER;
+            return isAFolder === isBFolder ? 0 : isAFolder ? -1 : 1;
         });
     } catch (error) {
         handleDriveError(error);
@@ -44,60 +109,81 @@ const fetchFileList = async () => {
     }
 };
 
-// Tratamento de erros
+// Tratamento de erros aprimorado
 const handleDriveError = (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    console.error('Erro no Google Drive:', error);
+    
+    if (error.status === 401 || error.status === 403) {
         authError.value = 'Erro de autenticação. Por favor, faça login novamente.';
-    } else if (error.response?.status === 404) {
-        authError.value = 'Rota não encontrada. Contate o administrador.';
+    } else if (error.status === 404) {
+        authError.value = 'Recurso não encontrado. Verifique as permissões e tente novamente.';
     } else {
-        authError.value = 'Erro ao carregar arquivos: ' + error.message;
+        authError.value = 'Erro ao carregar arquivos: ' + (error.message || 'Erro desconhecido');
     }
 };
 
 // Navegação entre pastas
-const navigateToFolder = (folderId) => {
-    folderHistory.value.push(folderId);
+const navigateToFolder = (folderId, folderName) => {
+    folderHistory.value.push({id: folderId, name: folderName});
     currentFolderId.value = folderId;
+    currentFolderName.value = folderName;
     fetchFileList();
 };
 
 const navigateBack = () => {
     if (folderHistory.value.length > 1) {
-        folderHistory.value.pop();
-        currentFolderId.value = folderHistory.value[folderHistory.value.length - 1];
+        const newHistory = [...folderHistory.value.slice(0, -1)];
+        folderHistory.value = newHistory;
+        const previousFolder = newHistory[newHistory.length - 1];
+        currentFolderId.value = previousFolder.id;
+        currentFolderName.value = previousFolder.name;
         fetchFileList();
     }
 };
 
-// Download de arquivos
+// Download de arquivos diretamente do Google Drive
 const downloadFile = async (file) => {
     try {
-        const response = await axios.get(`/api/drive/download/${file.id}`, { // Rota corrigida
-            responseType: 'blob'
+        if (!isGapiLoaded.value) {
+            await initGapi();
+        }
+        
+        const accessToken = gapi.auth.getToken().access_token;
+        const url = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
+        
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         });
 
-        const url = window.URL.createObjectURL(response.data);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = url;
+        link.href = downloadUrl;
         link.download = file.name;
         document.body.appendChild(link);
         link.click();
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(downloadUrl);
         link.remove();
     } catch (error) {
-        alert("Erro ao baixar o arquivo: " + error.message);
+        downloadError.value = `Falha ao baixar ${file.name}: ${error.message}`;
     }
 };
 
 // Watchers e lifecycle hooks
-watchEffect(() => {
-    fetchFileList();
-});
+watch(
+    () => currentFolderId.value,
+    () => fetchFileList(),
+    { immediate: true }
+);
 
-onMounted(async () => {
-    await fetchBusyStatus();
-    fetchFileList();
+onMounted(() => {
+    initGapi().then(() => {
+        fetchFileList();
+    }).catch(error => {
+        authError.value = 'Erro ao carregar a API do Google Drive: ' + error.message;
+    });
 });
 </script>
 
@@ -114,7 +200,7 @@ onMounted(async () => {
                     ← Voltar
                 </button>
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors">
-                    Google Drive Backups
+                    Google Drive Backups - {{ currentFolderName }}
                 </h2>
             </div>
             <div v-if="isLoading" class="flex items-center text-blue-600 dark:text-blue-400 transition-colors">
@@ -135,12 +221,22 @@ onMounted(async () => {
                 Tentar novamente
             </button>
         </div>
+        <div v-if="downloadError" class="p-4 mb-4 bg-red-100 text-red-700 rounded-lg">
+            {{ downloadError }}
+            <button @click="downloadError = null" class="ml-2 text-red-600 hover:text-red-800">×</button>
+        </div>
 
         <div class="bg-gray-100/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-6 transition-colors duration-300 flex flex-col items-center justify-center min-h-[300px]">
             <div class="max-w-md w-full space-y-4 text-center">
                 <ul v-if="fileList.length > 0" class="file-list space-y-2">
                     <li v-for="file in fileList" :key="file.id" class="file-item rounded-lg p-3 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors">
-                        <button v-if="file.mimeType === 'application/vnd.google-apps.folder'" @click="navigateToFolder(file.id)" class="file-link folder w-full text-left">
+                        <button
+                            v-if="file.mimeType === MIME_TYPES.FOLDER"
+                            @click="navigateToFolder(file.id, file.name)"
+                            class="file-link folder w-full text-left"
+                            role="treeitem"
+                            :aria-label="`Abrir pasta ${file.name}`"
+                        >
                             <i class="fas fa-folder mr-2 text-yellow-400"></i> {{ file.name }}
                         </button>
                         <a v-else @click.prevent="downloadFile(file)" class="file-link file w-full text-left block">
