@@ -10,15 +10,17 @@ class KiwifyWebhookController extends Controller
     public function handle(Request $request)
     {
         // 1. Obter os dados do payload do webhook
-        $payload = $request->all(); // ou $request->json()->all() se a Kiwify enviar JSON
+        // Kiwify envia o payload no corpo da requisição como JSON
+        $payload = $request->json()->all();
 
         // 2. [Importante] Verificar a assinatura do webhook (segurança)
-        $signature = $request->header('x-signature'); // ou o header correto da Kiwify
-        $secret = env('KIWIFY_WEBHOOK_SECRET'); // Seu segredo webhook da Kiwify
+        // A assinatura agora vem como parâmetro GET 'signature'
+        $signature = $request->query('signature');
+        $secretKey = env('KIWIFY_WEBHOOK_SECRET'); // Seu segredo webhook da Kiwify
 
-        if (!$this->verifySignature($payload, $signature, $secret)) {
+        if (!$this->verifySignature($payload, $signature, $secretKey)) {
             Log::warning('Webhook da Kiwify: Assinatura inválida.');
-            return response('Assinatura inválida', 403); // Retornar erro 403 se a assinatura for inválida
+            return response()->json(['error' => 'Incorrect signature'], 400); // Retornar erro 400 com JSON
         }
 
         // 3. Processar o payload do webhook
@@ -39,29 +41,29 @@ class KiwifyWebhookController extends Controller
             // ... adicione outros eventos que você precisa tratar ...
         }
 
-        // 4. Responder com um status 200 OK para indicar que o webhook foi recebido e processado
-        return response('Webhook recebido', 200);
+        // 4. Responder com um status 200 OK e JSON {'status' => 'ok'}
+        return response()->json(['status' => 'ok'], 200);
     }
 
     /**
-     * Verifica a assinatura do webhook da Kiwify.
-     * Consulte a documentação da Kiwify para o método correto de verificação.
+     * Verifica a assinatura do webhook da Kiwify usando HMAC-SHA1.
+     * Adaptação do código PHP fornecido.
      *
      * @param array $payload
-     * @param string|null $signatureHeader
-     * @param string $secret
+     * @param string|null $signatureQueryString
+     * @param string $secretKey
      * @return bool
      */
-    private function verifySignature(array $payload, ?string $signatureHeader, string $secret): bool
+    private function verifySignature(array $payload, ?string $signatureQueryString, string $secretKey): bool
     {
-        if (!$signatureHeader) {
-            return false; // Sem header de assinatura, inválido
+        if (!$signatureQueryString) {
+            return false; // Sem assinatura na query string, inválido
         }
 
-        // Conforme a documentação da Kiwify (e prática comum), usa-se HMAC-SHA256
-        $expectedSignature = hash_hmac('sha256', json_encode($payload), $secret); // Assumindo payload como JSON
+        // Usar HMAC-SHA1 conforme o exemplo de código PHP
+        $calculatedSignature = hash_hmac('sha1', json_encode($payload), $secretKey);
 
         // Comparar as assinaturas
-        return hash_equals($signatureHeader, $expectedSignature);
+        return hash_equals($signatureQueryString, $calculatedSignature);
     }
 }
