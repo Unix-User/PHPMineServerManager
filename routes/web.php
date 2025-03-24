@@ -14,6 +14,7 @@ use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\JsonApiReloadedController;
 use Illuminate\Http\Request as HttpRequest;
 use App\Http\Controllers\AccountLinkController;
+use App\Http\Controllers\KiwifyWebhookController;
 
 /*
 --------------------------------------------------------------------------
