@@ -268,4 +268,6 @@ Route::middleware([
         $request->merge(['directoryPath' => $directoryPath]);
         return app(JsonApiReloadedController::class)->fsListDirectory($request);
     })->where('directoryPath', '.*')->name('list-directory');
+
+    Route::post('/kiwify/webhook', [KiwifyWebhookController::class, 'handle'])->name('kiwify.webhook');
 });
