@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        '/kiwify/webhook', // Excluir a rota do webhook da Kiwify
     ];
 }
