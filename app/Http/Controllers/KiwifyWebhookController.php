@@ -9,54 +9,62 @@ class KiwifyWebhookController extends Controller
 {
     public function handle(Request $request)
     {
+        // Verificar se é uma requisição HEAD
+        if ($request->isMethod('head')) {
+            Log::info('[Kiwify Webhook] Requisição HEAD recebida');
+            return response()->json(['status' => 'ok'], 200);
+        }
+
         Log::info('[Kiwify Webhook] Início do processamento');
 
-        // 1. Obter conteúdo bruto e validar JSON
+        // 1. Obter conteúdo bruto
         $rawPayload = $request->getContent();
-        Log::debug('[Kiwify Webhook] Conteúdo bruto recebido', ['raw' => $rawPayload]);
+        Log::info('[Kiwify Webhook] Conteúdo bruto recebido', ['raw' => $rawPayload]);
 
+        // 2. Decodificar JSON
         $payload = json_decode($rawPayload, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('[Kiwify Webhook] Payload JSON inválido', ['raw' => $rawPayload]);
+            Log::info('[Kiwify Webhook] Payload JSON inválido', ['raw' => $rawPayload]);
             return response()->json(['error' => 'Invalid JSON'], 400);
         }
 
-        // 2. Verificar assinatura
+        // 3. Verificar assinatura
         $signature = $request->query('signature');
         $secretKey = env('KIWIFY_WEBHOOK_SECRET');
 
         if (empty($secretKey)) {
-            Log::critical('[Kiwify Webhook] Chave secreta não configurada');
+            Log::info('[Kiwify Webhook] Chave secreta não configurada');
             return response()->json(['error' => 'Server configuration error'], 500);
         }
 
-        Log::debug('[Kiwify Webhook] Parâmetros de verificação', [
-            'signature_recebida' => $signature,
-            'secret_key' => substr($secretKey, 0, 4) . '...' // Log parcial por segurança
+        $calculatedSignature = hash_hmac('sha1', json_encode($payload), $secretKey);
+        Log::info('[Kiwify Webhook] Verificação de assinatura', [
+            'assinatura_recebida' => $signature,
+            'assinatura_calculada' => $calculatedSignature
         ]);
 
-        if (!$this->verifySignature($rawPayload, $signature, $secretKey)) {
-            Log::warning('[Kiwify Webhook] Assinatura inválida', [
-                'payload' => $rawPayload,
+        if ($signature !== $calculatedSignature) {
+            Log::info('[Kiwify Webhook] Assinatura inválida', [
+                'payload' => $payload,
                 'signature_recebida' => $signature
             ]);
-            return response()->json(['error' => 'Invalid signature'], 401);
+            return response()->json(['error' => 'Invalid signature'], 400);
         }
 
-        // 3. Processar eventos
+        // 4. Processar eventos
         Log::info('[Kiwify Webhook] Payload válido recebido', [
-            'evento' => $payload['event'] ?? 'nenhum',
+            'evento' => $payload['webhook_event_type'] ?? 'nenhum',
             'payload_size' => strlen($rawPayload) . ' bytes'
         ]);
 
         try {
-            if (isset($payload['event'])) {
-                $this->processarEvento($payload['event'], $payload);
+            if (isset($payload['webhook_event_type'])) {
+                $this->processarEvento($payload['webhook_event_type'], $payload);
             } else {
-                Log::warning('[Kiwify Webhook] Evento não especificado', $payload);
+                Log::info('[Kiwify Webhook] Evento não especificado', $payload);
             }
         } catch (\Exception $e) {
-            Log::error('[Kiwify Webhook] Erro no processamento', [
+            Log::info('[Kiwify Webhook] Erro no processamento', [
                 'erro' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -64,20 +72,7 @@ class KiwifyWebhookController extends Controller
         }
 
         Log::info('[Kiwify Webhook] Processamento concluído com sucesso');
-        return response()->json(['status' => 'success']);
-    }
-
-    private function verifySignature(string $rawPayload, ?string $signature, string $secretKey): bool
-    {
-        if (empty($signature)) {
-            Log::debug('[Kiwify Webhook] Assinatura ausente na requisição');
-            return false;
-        }
-
-        $calculatedSignature = hash_hmac('sha1', $rawPayload, $secretKey);
-        Log::debug('[Kiwify Webhook] Assinatura calculada', ['assinatura' => $calculatedSignature]);
-
-        return hash_equals($calculatedSignature, $signature);
+        return response()->json(['status' => 'ok'], 200);
     }
 
     private function processarEvento(string $evento, array $dados)
@@ -86,28 +81,23 @@ class KiwifyWebhookController extends Controller
         Log::info("[Kiwify Webhook] Iniciando processamento para evento: $evento", $logContext);
 
         switch ($evento) {
-            case 'order.paid':
-                $this->handleOrderPaid($dados);
-                break;
-            case 'product.updated':
-                $this->handleProductUpdated($dados);
+            case 'order_approved':
+                $this->handleOrderApproved($dados);
                 break;
             default:
-                Log::warning("[Kiwify Webhook] Evento não implementado: $evento", $logContext);
+                Log::info("[Kiwify Webhook] Evento não implementado: $evento", $logContext);
         }
 
         Log::info("[Kiwify Webhook] Processamento concluído para evento: $evento");
     }
 
-    private function handleOrderPaid(array $dados)
+    private function handleOrderApproved(array $dados)
     {
-        // Implementar lógica para pedidos pagos
-        Log::info('[Kiwify Webhook] Processando pedido pago', ['order_id' => $dados['order_id'] ?? 'desconhecido']);
-    }
-
-    private function handleProductUpdated(array $dados)
-    {
-        // Implementar lógica para produtos atualizados
-        Log::info('[Kiwify Webhook] Processando produto atualizado', ['product_id' => $dados['product_id'] ?? 'desconhecido']);
+        Log::info('[Kiwify Webhook] Processando pedido aprovado', [
+            'order_id' => $dados['order_id'] ?? 'desconhecido',
+            'customer' => $dados['Customer'] ?? []
+        ]);
+        
+        // Implementar lógica para pedidos aprovados
     }
 }
