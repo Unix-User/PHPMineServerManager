@@ -9,59 +9,63 @@ class KiwifyWebhookController extends Controller
 {
     public function handle(Request $request)
     {
+        // Logar o recebimento inicial do webhook
+        Log::info('Início do processamento do webhook da Kiwify');
+
         // 1. Obter os dados do payload do webhook
-        $payload = $request->all(); // ou $request->json()->all() se a Kiwify enviar JSON
+        $payload = $request->json()->all();
+        Log::debug('Payload recebido:', $payload);
 
-        // 2. [Importante] Verificar a assinatura do webhook (segurança)
-        $signature = $request->header('x-signature'); // ou o header correto da Kiwify
-        $secret = env('KIWIFY_WEBHOOK_SECRET'); // Seu segredo webhook da Kiwify
+        // 2. Verificar a assinatura do webhook
+        $signature = $request->query('signature');
+        $secretKey = env('KIWIFY_WEBHOOK_SECRET');
+        Log::debug('Assinatura recebida:', ['signature' => $signature]);
 
-        if (!$this->verifySignature($payload, $signature, $secret)) {
-            Log::warning('Webhook da Kiwify: Assinatura inválida.');
-            return response('Assinatura inválida', 403); // Retornar erro 403 se a assinatura for inválida
+        if (!$this->verifySignature($payload, $signature, $secretKey)) {
+            Log::warning('Webhook da Kiwify: Assinatura inválida.', [
+                'received_signature' => $signature,
+                'payload' => $payload
+            ]);
+            return response()->json(['error' => 'Incorrect signature'], 400);
         }
+
+        Log::info('Assinatura do webhook validada com sucesso');
 
         // 3. Processar o payload do webhook
-        Log::info('Webhook da Kiwify recebido:', $payload);
+        Log::info('Webhook da Kiwify recebido:', [
+            'event' => $payload['event'] ?? 'unknown',
+            'payload' => $payload
+        ]);
 
-        // Adicione aqui a lógica para processar os eventos da Kiwify
-        // Exemplo:
         if (isset($payload['event'])) {
+            Log::info('Evento detectado: ' . $payload['event']);
+            
             if ($payload['event'] === 'order.paid') {
-                // Lógica para pedido pago
-                Log::info('Evento: Pedido Pago', $payload);
+                Log::info('Processando evento: Pedido Pago', $payload);
                 // ... sua lógica aqui ...
             } elseif ($payload['event'] === 'product.updated') {
-                // Lógica para produto atualizado
-                Log::info('Evento: Produto Atualizado', $payload);
+                Log::info('Processando evento: Produto Atualizado', $payload);
                 // ... sua lógica aqui ...
             }
-            // ... adicione outros eventos que você precisa tratar ...
+        } else {
+            Log::warning('Webhook recebido sem evento definido', $payload);
         }
 
-        // 4. Responder com um status 200 OK para indicar que o webhook foi recebido e processado
-        return response('Webhook recebido', 200);
+        // 4. Responder com sucesso
+        Log::info('Webhook processado com sucesso');
+        return response()->json(['status' => 'ok'], 200);
     }
 
-    /**
-     * Verifica a assinatura do webhook da Kiwify.
-     * Consulte a documentação da Kiwify para o método correto de verificação.
-     *
-     * @param array $payload
-     * @param string|null $signatureHeader
-     * @param string $secret
-     * @return bool
-     */
-    private function verifySignature(array $payload, ?string $signatureHeader, string $secret): bool
+    private function verifySignature(array $payload, ?string $signatureQueryString, string $secretKey): bool
     {
-        if (!$signatureHeader) {
-            return false; // Sem header de assinatura, inválido
+        if (!$signatureQueryString) {
+            Log::warning('Tentativa de verificação de assinatura sem signature');
+            return false;
         }
 
-        // Conforme a documentação da Kiwify (e prática comum), usa-se HMAC-SHA256
-        $expectedSignature = hash_hmac('sha256', json_encode($payload), $secret); // Assumindo payload como JSON
+        $calculatedSignature = hash_hmac('sha1', json_encode($payload), $secretKey);
+        Log::debug('Assinatura calculada:', ['calculated_signature' => $calculatedSignature]);
 
-        // Comparar as assinaturas
-        return hash_equals($signatureHeader, $expectedSignature);
+        return hash_equals($signatureQueryString, $calculatedSignature);
     }
 }
