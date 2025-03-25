@@ -4,85 +4,100 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\Purchase;
 
 class KiwifyWebhookController extends Controller
 {
+    private const LOG_PREFIX = '[Kiwify Webhook]';
+    private const EVENT_HANDLERS = [
+        'order_approved' => 'handleOrderApproved',
+        'billet_created' => 'handleBilletCreated',
+        'pix_created' => 'handlePixCreated',
+        'order_rejected' => 'handleOrderRejected',
+        'order_refunded' => 'handleOrderRefunded',
+        'chargeback' => 'handleChargeback',
+    ];
+
     public function handle(Request $request)
     {
-        // Verificar se é uma requisição HEAD
         if ($request->isMethod('head')) {
-            Log::info('[Kiwify Webhook] Requisição HEAD recebida');
+            Log::info(self::LOG_PREFIX . ' HEAD request received');
             return response()->json(['status' => 'ok']);
         }
 
-        Log::info('[Kiwify Webhook] Início do processamento');
+        Log::info(self::LOG_PREFIX . ' Processing started');
 
-        // 1. Obter e validar payload JSON
+        try {
+            $payload = $this->validateAndDecodePayload($request);
+            $this->verifyRequestSignature($request, $payload['raw']);
+            $this->processEvent($payload['decoded']);
+            
+            Log::info(self::LOG_PREFIX . ' Processing completed successfully');
+            return response()->json(['status' => 'ok']);
+            
+        } catch (\Exception $e) {
+            Log::error(self::LOG_PREFIX . ' Error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'payload' => $request->getContent()
+            ]);
+            return response()->json(['error' => $e->getMessage()], $e->getCode() ?: 500);
+        }
+    }
+
+    private function validateAndDecodePayload(Request $request): array
+    {
         $rawPayload = $request->getContent();
-        Log::debug('[Kiwify Webhook] Conteúdo bruto recebido', ['size' => strlen($rawPayload) . ' bytes']);
+        Log::debug(self::LOG_PREFIX . ' Raw payload received', ['size' => strlen($rawPayload) . ' bytes']);
 
-        // Remover comentários e limpar o payload
         $cleanedPayload = $this->cleanJsonPayload($rawPayload);
-        $payload = json_decode($cleanedPayload, true);
+        $decodedPayload = json_decode($cleanedPayload, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('[Kiwify Webhook] Payload JSON inválido', ['raw' => $rawPayload]);
-            return response()->json(['error' => 'Invalid JSON'], 400);
+            throw new \Exception('JSON inválido', 400);
         }
 
-        // 2. Verificar assinatura
+        if (empty($decodedPayload['order_id'])) {
+            throw new \Exception('ID do pedido ausente no payload', 400);
+        }
+
+        return [
+            'raw' => $rawPayload,
+            'decoded' => $decodedPayload
+        ];
+    }
+
+    private function verifyRequestSignature(Request $request, string $rawPayload): void
+    {
         $signature = $request->query('signature');
         $secretKey = env('KIWIFY_WEBHOOK_SECRET');
 
         if (empty($secretKey)) {
-            Log::critical('[Kiwify Webhook] Chave secreta não configurada');
-            return response()->json(['error' => 'Server configuration error'], 500);
+            Log::warning(self::LOG_PREFIX . ' Chave secreta do webhook Kiwify não configurada - Acesso permitido sem verificação de assinatura');
+            return;
         }
 
         if (!$this->verifySignature($rawPayload, $signature, $secretKey)) {
-            Log::warning('[Kiwify Webhook] Assinatura inválida', [
-                'signature_recebida' => $signature,
+            Log::warning(self::LOG_PREFIX . ' Assinatura inválida', [
+                'received_signature' => $signature,
                 'payload_size' => strlen($rawPayload) . ' bytes'
             ]);
-            return response()->json(['error' => 'Invalid signature'], 401);
+            throw new \Exception('Assinatura inválida', 401);
         }
-
-        // 3. Processar eventos
-        Log::info('[Kiwify Webhook] Payload válido recebido', [
-            'event_type' => $payload['webhook_event_type'] ?? 'unknown',
-            'order_id' => $payload['order_id'] ?? 'unknown'
-        ]);
-
-        try {
-            $this->processarEvento($payload);
-        } catch (\Exception $e) {
-            Log::error('[Kiwify Webhook] Erro no processamento', [
-                'erro' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['error' => 'Processing error'], 500);
-        }
-
-        Log::info('[Kiwify Webhook] Processamento concluído com sucesso');
-        return response()->json(['status' => 'ok']);
     }
 
     private function cleanJsonPayload(string $payload): string
     {
-        // Remover comentários de linha única
-        $payload = preg_replace('!/\*.*?\*/!s', '', $payload);
-        $payload = preg_replace('!//.*?\n!', '', $payload);
-        
-        // Remover espaços em excesso e quebras de linha
-        $payload = preg_replace('/\s+/', ' ', $payload);
-        
-        return trim($payload);
+        return trim(preg_replace([
+            '!/\*.*?\*/!s',
+            '!//.*?\n!',
+            '/\s+/'
+        ], ['', '', ' '], $payload));
     }
 
     private function verifySignature(string $rawPayload, ?string $signature, string $secretKey): bool
     {
         if (empty($signature)) {
-            Log::debug('[Kiwify Webhook] Assinatura ausente na requisição');
+            Log::debug(self::LOG_PREFIX . ' Assinatura ausente na requisição');
             return false;
         }
 
@@ -90,63 +105,113 @@ class KiwifyWebhookController extends Controller
         return hash_equals($calculatedSignature, $signature);
     }
 
-    private function processarEvento(array $dados)
+    private function processEvent(array $data): void
     {
-        $eventType = $dados['webhook_event_type'] ?? 'unknown';
+        $eventType = $data['webhook_event_type'] ?? 'unknown';
         $logContext = [
             'event_type' => $eventType,
-            'order_id' => $dados['order_id'] ?? 'unknown',
-            'product_type' => $dados['product_type'] ?? 'unknown'
+            'order_id' => $data['order_id'] ?? 'unknown',
+            'product_type' => $data['product_type'] ?? 'unknown'
         ];
 
-        Log::info("[Kiwify Webhook] Processando evento: $eventType", $logContext);
+        Log::info(self::LOG_PREFIX . " Processando evento: {$eventType}", $logContext);
 
-        switch ($eventType) {
-            case 'order_approved':
-                $this->handleOrderApproved($dados);
-                break;
-            case 'subscription_created':
-                $this->handleSubscriptionCreated($dados);
-                break;
-            case 'subscription_cancelled':
-                $this->handleSubscriptionCancelled($dados);
-                break;
-            default:
-                Log::warning("[Kiwify Webhook] Evento não implementado: $eventType", $logContext);
+        if (isset(self::EVENT_HANDLERS[$eventType])) {
+            try {
+                $this->{self::EVENT_HANDLERS[$eventType]}($data);
+            } catch (\Exception $e) {
+                Log::error(self::LOG_PREFIX . " Erro ao processar evento {$eventType}", [
+                    'order_id' => $data['order_id'] ?? 'unknown',
+                    'exception' => $e
+                ]);
+                throw new \Exception("Erro ao processar evento {$eventType}", 500);
+            }
+        } else {
+            Log::warning(self::LOG_PREFIX . " Evento não implementado: {$eventType}", $logContext);
         }
     }
 
-    private function handleOrderApproved(array $dados)
+    private function updatePurchaseStatus(array $data, string $status, string $logMessage): void
     {
-        Log::info('[Kiwify Webhook] Processando pedido aprovado', [
-            'order_id' => $dados['order_id'] ?? 'unknown',
-            'customer_email' => $dados['Customer']['email'] ?? 'unknown',
-            'amount' => $dados['Commissions']['charge_amount'] ?? 'unknown',
-            'product_type' => $dados['product_type'] ?? 'unknown'
-        ]);
-        
-        // Implementar lógica para pedidos aprovados
+        $purchaseData = [
+            'order_id' => $data['order_id'],
+            'status' => $status,
+            'customer_email' => $data['Customer']['email'] ?? null,
+            'product_type' => $data['product_type'] ?? null,
+            'amount' => $data['Commissions']['charge_amount'] ?? null,
+            'shop_item_id' => $data['Product']['product_id'] ?? null, // Adicionado shop_item_id
+        ];
+
+        try {
+            Purchase::updateOrCreate(
+                ['order_id' => $data['order_id']],
+                $purchaseData
+            );
+            Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage}", ['order_id' => $data['order_id']]);
+        } catch (\Exception $e) {
+            Log::error(self::LOG_PREFIX . ' Erro ao atualizar compra', [
+                'order_id' => $data['order_id'],
+                'exception' => $e,
+                'purchase_data' => $purchaseData
+            ]);
+            throw new \Exception('Erro ao processar compra', 500);
+        }
     }
 
-    private function handleSubscriptionCreated(array $dados)
+    private function handleOrderApproved(array $data): void
     {
-        Log::info('[Kiwify Webhook] Processando assinatura criada', [
-            'subscription_id' => $dados['subscription_id'] ?? 'unknown',
-            'plan_name' => $dados['Subscription']['plan']['name'] ?? 'unknown',
-            'next_payment' => $dados['Subscription']['next_payment'] ?? 'unknown',
-            'frequency' => $dados['Subscription']['plan']['frequency'] ?? 'unknown'
+        Log::info(self::LOG_PREFIX . ' Processando pedido aprovado', [
+            'order_id' => $data['order_id'] ?? 'unknown',
+            'customer_email' => $data['Customer']['email'] ?? 'unknown',
+            'amount' => $data['Commissions']['charge_amount'] ?? 'unknown',
+            'product_type' => $data['product_type'] ?? 'unknown'
         ]);
-        
-        // Implementar lógica para novas assinaturas
+
+        $this->updatePurchaseStatus($data, 'approved', 'pedido aprovado');
     }
 
-    private function handleSubscriptionCancelled(array $dados)
+    private function handleBilletCreated(array $data): void
     {
-        Log::info('[Kiwify Webhook] Processando assinatura cancelada', [
-            'subscription_id' => $dados['subscription_id'] ?? 'unknown',
-            'cancelation_reason' => $dados['Subscription']['cancelation_reason'] ?? 'unknown'
+        Log::info(self::LOG_PREFIX . ' Processando boleto criado', [
+            'order_id' => $data['order_id'] ?? 'unknown'
         ]);
-        
-        // Implementar lógica para assinaturas canceladas
+
+        $this->updatePurchaseStatus($data, 'boleto_gerado', 'boleto gerado');
+    }
+
+    private function handlePixCreated(array $data): void
+    {
+        Log::info(self::LOG_PREFIX . ' Processando pix criado', [
+            'order_id' => $data['order_id'] ?? 'unknown'
+        ]);
+
+        $this->updatePurchaseStatus($data, 'pix_gerado', 'pix gerado');
+    }
+
+    private function handleOrderRejected(array $data): void
+    {
+        Log::info(self::LOG_PREFIX . ' Processando pedido rejeitado', [
+            'order_id' => $data['order_id'] ?? 'unknown'
+        ]);
+
+        $this->updatePurchaseStatus($data, 'rejected', 'compra recusada');
+    }
+
+    private function handleOrderRefunded(array $data): void
+    {
+        Log::info(self::LOG_PREFIX . ' Processando reembolso', [
+            'order_id' => $data['order_id'] ?? 'unknown'
+        ]);
+
+        $this->updatePurchaseStatus($data, 'refunded', 'reembolso');
+    }
+
+    private function handleChargeback(array $data): void
+    {
+        Log::info(self::LOG_PREFIX . ' Processando chargeback', [
+            'order_id' => $data['order_id'] ?? 'unknown'
+        ]);
+
+        $this->updatePurchaseStatus($data, 'chargeback', 'chargeback');
     }
 }
