@@ -15,6 +15,7 @@ use App\Http\Controllers\JsonApiReloadedController;
 use Illuminate\Http\Request as HttpRequest;
 use App\Http\Controllers\AccountLinkController;
 use App\Http\Controllers\KiwifyWebhookController;
+use App\Models\Purchase;
 
 /*
 --------------------------------------------------------------------------
@@ -271,6 +272,16 @@ Route::middleware([
         $request->merge(['directoryPath' => $directoryPath]);
         return app(JsonApiReloadedController::class)->fsListDirectory($request);
     })->where('directoryPath', '.*')->name('list-directory');
+    
+    Route::get('/purchases', function() {
+        if (Auth::user()->roles->pluck('name')->contains('admin')) {
+            $purchases = Purchase::paginate(10);
+            return response()->json($purchases);
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    })->name('purchases.index');
+
 });
 
 Route::post('/kiwify/webhook', [KiwifyWebhookController::class, 'handle'])->name('kiwify.webhook');
