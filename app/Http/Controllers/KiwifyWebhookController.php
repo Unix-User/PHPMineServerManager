@@ -122,9 +122,10 @@ class KiwifyWebhookController extends Controller
             } catch (\Exception $e) {
                 Log::error(self::LOG_PREFIX . " Erro ao processar evento {$eventType}", [
                     'order_id' => $data['order_id'] ?? 'unknown',
-                    'exception' => $e
+                    'exception' => $e,
+                    'stacktrace' => $e->getTraceAsString() // Adicionado stacktrace para melhor depuração
                 ]);
-                throw new \Exception("Erro ao processar evento {$eventType}", 500);
+                throw new \Exception("Erro ao processar evento {$eventType}: " . $e->getMessage(), 500);
             }
         } else {
             Log::warning(self::LOG_PREFIX . " Evento não implementado: {$eventType}", $logContext);
@@ -139,7 +140,8 @@ class KiwifyWebhookController extends Controller
             'customer_email' => $data['Customer']['email'] ?? null,
             'product_type' => $data['product_type'] ?? null,
             'amount' => $data['Commissions']['charge_amount'] ?? null,
-            'shop_item_id' => $data['Product']['product_id'] ?? null, // Adicionado shop_item_id
+            'shop_item_id' => $data['Product']['product_id'] ?? null,
+            'user_id' => $this->getUserIdFromCustomerData($data) // Adicionado mapeamento de user_id
         ];
 
         try {
@@ -152,10 +154,24 @@ class KiwifyWebhookController extends Controller
             Log::error(self::LOG_PREFIX . ' Erro ao atualizar compra', [
                 'order_id' => $data['order_id'],
                 'exception' => $e,
-                'purchase_data' => $purchaseData
+                'purchase_data' => $purchaseData,
+                'stacktrace' => $e->getTraceAsString() // Adicionado stacktrace para melhor depuração
             ]);
-            throw new \Exception('Erro ao processar compra', 500);
+            throw new \Exception('Erro ao processar compra: ' . $e->getMessage(), 500);
         }
+    }
+
+    private function getUserIdFromCustomerData(array $data): ?int
+    {
+        // Implementar lógica para mapear o email do cliente para um user_id
+        // Exemplo básico:
+        $email = $data['Customer']['email'] ?? null;
+        if ($email) {
+            // Aqui você pode implementar a lógica para buscar o user_id
+            // baseado no email do cliente
+            return null; // Retornar null por enquanto
+        }
+        return null;
     }
 
     private function handleOrderApproved(array $data): void
