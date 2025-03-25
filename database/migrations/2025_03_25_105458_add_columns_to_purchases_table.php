@@ -40,7 +40,24 @@ return new class extends Migration
                 $table->string('status')->nullable()->after('product_type');
             }
 
-            if (!Schema::hasColumn('purchases', 'user_id') || !Schema::hasColumn('purchases', 'shop_item_id') ) {
+            if (Schema::hasColumn('purchases', 'user_id') && !Schema::hasColumn('purchases', 'shop_item_id') ) {
+                 if (!Schema::hasColumn('purchases', 'shop_item_id')) {
+                    $table->foreign('shop_item_id')
+                        ->references('id')
+                        ->on('shop_items')
+                        ->onDelete('set null')
+                        ->onUpdate('cascade');
+                }
+            } else if (!Schema::hasColumn('purchases', 'user_id') && Schema::hasColumn('purchases', 'shop_item_id') ) {
+                if (!Schema::hasColumn('purchases', 'user_id')) {
+                    $table->foreign('user_id')
+                        ->references('id')
+                        ->on('users')
+                        ->onDelete('set null')
+                        ->onUpdate('cascade');
+                }
+            }
+             else {
                 if (!Schema::hasColumn('purchases', 'user_id')) {
                     $table->foreign('user_id')
                         ->references('id')
