@@ -143,7 +143,7 @@ class KiwifyWebhookController extends Controller
             'status' => $status,
             'customer_email' => $data['Customer']['email'] ?? null,
             'product_type' => $data['product_type'] ?? null,
-            'amount' => $data['Commissions']['charge_amount'] ?? null,
+            'amount' => (int)($data['Commissions']['charge_amount'] ?? null),
             'shop_item_id' => (string)($data['Product']['product_id'] ?? null),
             'user_id' => $this->getUserIdFromCustomerData($data),
             'uuid' => $data['TrackingParameters']['src'] ?? null
@@ -204,7 +204,7 @@ class KiwifyWebhookController extends Controller
             'order_ref' => $data['order_ref'] ?? 'unknown',
             'order_status' => $data['order_status'] ?? 'unknown',
             'customer_email' => $data['Customer']['email'] ?? 'unknown',
-            'amount' => $data['Commissions']['charge_amount'] ?? 'unknown',
+            'amount' => (int)($data['Commissions']['charge_amount'] ?? 'unknown'),
             'product_type' => $data['product_type'] ?? 'unknown',
             'uuid' => $data['TrackingParameters']['src'] ?? 'unknown'
         ]);

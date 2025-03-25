@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Purchase;
 use App\Models\ShopItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Cache, Storage};
+use Illuminate\Support\Facades\{Cache, Storage, Log};
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 
@@ -143,13 +144,59 @@ class ShopItemController extends Controller
         $uuid = Str::uuid();
         $linkComUuid = $shopItem->link . '?src=' . $uuid;
 
+        // Registra a tentativa de compra no log
+        Log::info('Solicitação de compra iniciada', [
+            'shop_item_id' => $shopItem->id,
+            'user_id' => auth()->id(),
+            'uuid' => $uuid,
+            'price' => $shopItem->price
+        ]);
+
         if (empty($shopItem->link)) {
+            // Registra o erro de link ausente
+            Log::error('Tentativa de compra sem link de pagamento', [
+                'shop_item_id' => $shopItem->id,
+                'user_id' => auth()->id()
+            ]);
             return back()->withErrors(['error' => 'Este item não possui um link de pagamento configurado']);
         }
 
-        return response()->json([
-            'payment_link' => $linkComUuid
-        ]);
+        try {
+            // Cria um registro de compra pendente para consulta posterior pelo webhook
+            Purchase::create([
+                'shop_item_id' => $shopItem->id,
+                'uuid' => $uuid,
+                'status' => 'pending',
+                'order_id' => 'pendente',
+                'order_ref' => null,
+                'order_status' => null,
+                'customer_email' => auth()->user()->email,
+                'product_type' => null,
+                'amount' => (int) $shopItem->price, // Converte para inteiro
+                'user_id' => auth()->id()
+            ]);
+
+            // Registra a criação do registro de compra
+            Log::info('Registro de compra criado com sucesso', [
+                'shop_item_id' => $shopItem->id,
+                'uuid' => $uuid,
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'payment_link' => $linkComUuid
+            ]);
+
+        } catch (\Exception $e) {
+            // Registra qualquer erro durante o processo
+            Log::error('Erro ao processar compra', [
+                'shop_item_id' => $shopItem->id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'stacktrace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['error' => 'Ocorreu um erro ao processar sua compra']);
+        }
     }
 
     protected function deleteImageIfNotDefault($path): void
