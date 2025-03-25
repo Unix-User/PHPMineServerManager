@@ -58,6 +58,16 @@ class ShopItemController extends Controller
         return Inertia::render('ShopItems', compact('shopItems'));
     }
 
+    public function getTopThreeItems()
+    {
+        return Cache::remember('topThreeShopItems', 3600, function() {
+            return ShopItem::take(3)->get()->map(function($item) {
+                $item->image = $this->getImageUrl($item->item_photo_path);
+                return $item;
+            });
+        });
+    }
+
     public function store(Request $request)
     {
         $validatedData = $request->validate($this->rules);
