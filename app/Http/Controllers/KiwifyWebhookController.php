@@ -111,6 +111,8 @@ class KiwifyWebhookController extends Controller
         $logContext = [
             'event_type' => $eventType,
             'order_id' => $data['order_id'] ?? 'unknown',
+            'order_ref' => $data['order_ref'] ?? 'unknown',
+            'order_status' => $data['order_status'] ?? 'unknown',
             'product_type' => $data['product_type'] ?? 'unknown'
         ];
 
@@ -123,7 +125,7 @@ class KiwifyWebhookController extends Controller
                 Log::error(self::LOG_PREFIX . " Erro ao processar evento {$eventType}", [
                     'order_id' => $data['order_id'] ?? 'unknown',
                     'exception' => $e,
-                    'stacktrace' => $e->getTraceAsString() // Adicionado stacktrace para melhor depuração
+                    'stacktrace' => $e->getTraceAsString()
                 ]);
                 throw new \Exception("Erro ao processar evento {$eventType}: " . $e->getMessage(), 500);
             }
@@ -136,6 +138,8 @@ class KiwifyWebhookController extends Controller
     {
         $purchaseData = [
             'order_id' => $data['order_id'],
+            'order_ref' => $data['order_ref'] ?? null,
+            'order_status' => $data['order_status'] ?? null,
             'status' => $status,
             'customer_email' => $data['Customer']['email'] ?? null,
             'product_type' => $data['product_type'] ?? null,
@@ -145,17 +149,38 @@ class KiwifyWebhookController extends Controller
         ];
 
         try {
+            // Busca a compra pelo UUID se existir
+            $uuid = $data['TrackingParameters']['src'] ?? null;
+            if ($uuid) {
+                $purchase = Purchase::where('uuid', $uuid)->first();
+                if ($purchase) {
+                    $purchase->update($purchaseData);
+                    Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage} via UUID", [
+                        'uuid' => $uuid,
+                        'order_id' => $data['order_id'],
+                        'order_ref' => $data['order_ref'] ?? 'unknown',
+                        'order_status' => $data['order_status'] ?? 'unknown'
+                    ]);
+                    return;
+                }
+            }
+
+            // Se não encontrar pelo UUID, usa o método padrão
             Purchase::updateOrCreate(
                 ['order_id' => $data['order_id']],
                 $purchaseData
             );
-            Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage}", ['order_id' => $data['order_id']]);
+            Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage}", [
+                'order_id' => $data['order_id'],
+                'order_ref' => $data['order_ref'] ?? 'unknown',
+                'order_status' => $data['order_status'] ?? 'unknown'
+            ]);
         } catch (\Exception $e) {
             Log::error(self::LOG_PREFIX . ' Erro ao atualizar compra', [
                 'order_id' => $data['order_id'],
                 'exception' => $e,
                 'purchase_data' => $purchaseData,
-                'stacktrace' => $e->getTraceAsString() // Adicionado stacktrace para melhor depuração
+                'stacktrace' => $e->getTraceAsString()
             ]);
             throw new \Exception('Erro ao processar compra: ' . $e->getMessage(), 500);
         }
@@ -163,13 +188,9 @@ class KiwifyWebhookController extends Controller
 
     private function getUserIdFromCustomerData(array $data): ?int
     {
-        // Implementar lógica para mapear o email do cliente para um user_id
-        // Exemplo básico:
         $email = $data['Customer']['email'] ?? null;
         if ($email) {
-            // Aqui você pode implementar a lógica para buscar o user_id
-            // baseado no email do cliente
-            return null; // Retornar null por enquanto
+            return null;
         }
         return null;
     }
@@ -178,9 +199,12 @@ class KiwifyWebhookController extends Controller
     {
         Log::info(self::LOG_PREFIX . ' Processando pedido aprovado', [
             'order_id' => $data['order_id'] ?? 'unknown',
+            'order_ref' => $data['order_ref'] ?? 'unknown',
+            'order_status' => $data['order_status'] ?? 'unknown',
             'customer_email' => $data['Customer']['email'] ?? 'unknown',
             'amount' => $data['Commissions']['charge_amount'] ?? 'unknown',
-            'product_type' => $data['product_type'] ?? 'unknown'
+            'product_type' => $data['product_type'] ?? 'unknown',
+            'uuid' => $data['TrackingParameters']['src'] ?? 'unknown'
         ]);
 
         $this->updatePurchaseStatus($data, 'approved', 'pedido aprovado');
@@ -189,7 +213,9 @@ class KiwifyWebhookController extends Controller
     private function handleBilletCreated(array $data): void
     {
         Log::info(self::LOG_PREFIX . ' Processando boleto criado', [
-            'order_id' => $data['order_id'] ?? 'unknown'
+            'order_id' => $data['order_id'] ?? 'unknown',
+            'order_ref' => $data['order_ref'] ?? 'unknown',
+            'order_status' => $data['order_status'] ?? 'unknown'
         ]);
 
         $this->updatePurchaseStatus($data, 'boleto_gerado', 'boleto gerado');
@@ -198,7 +224,9 @@ class KiwifyWebhookController extends Controller
     private function handlePixCreated(array $data): void
     {
         Log::info(self::LOG_PREFIX . ' Processando pix criado', [
-            'order_id' => $data['order_id'] ?? 'unknown'
+            'order_id' => $data['order_id'] ?? 'unknown',
+            'order_ref' => $data['order_ref'] ?? 'unknown',
+            'order_status' => $data['order_status'] ?? 'unknown'
         ]);
 
         $this->updatePurchaseStatus($data, 'pix_gerado', 'pix gerado');

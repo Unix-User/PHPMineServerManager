@@ -165,9 +165,19 @@ const filteredItems = () => {
     return items;
 };
 
-const buyItem = (link) => {
-    if (link) {
-        window.open(link, '_blank');
+const buyItem = (item) => {
+    if (item) {
+        axios.post(`/shop/items/${item.id}/buy`)
+            .then(response => {
+                if (response.data.payment_link) {
+                    window.open(response.data.payment_link, '_blank', 'noopener,noreferrer');
+                } else {
+                    alert('Erro ao gerar link de pagamento.');
+                }
+            })
+            .catch(error => {
+                alert('Erro ao processar compra.');
+            });
     }
 };
 </script>
@@ -248,9 +258,9 @@ const buyItem = (link) => {
                                 <p class="text-gray-700 dark:text-gray-300 text-base mt-2 mb-4 flex-grow transition-colors duration-300">{{ row.description }}</p>
                                 
                                 <div class="mt-auto flex justify-center">
-                                    <a :href="row.link" target="_blank" class="btn btn-primary btn-lg w-full flex items-center justify-center rounded-lg">
+                                    <button @click.prevent="buyItem(row)" class="btn btn-primary btn-lg w-full flex items-center justify-center rounded-lg">
                                         <i class="fas fa-shopping-cart mr-2"></i> Comprar Agora
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                             

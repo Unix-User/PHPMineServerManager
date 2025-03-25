@@ -106,6 +106,7 @@ Route::middleware([
         'update' => 'shop.items.update',
         'destroy' => 'shop.items.delete',
     ]);
+    Route::post('shop/items/{id}/buy', [ShopItemController::class, 'buy'])->name('shop.items.buy');
 
 
     // // updates

@@ -137,6 +137,21 @@ class ShopItemController extends Controller
         return redirect()->route('shop')->with('success', 'Item removido com sucesso!');
     }
 
+    public function buy(int $id)
+    {
+        $shopItem = ShopItem::findOrFail($id);
+        $uuid = Str::uuid();
+        $linkComUuid = $shopItem->link . '?src=' . $uuid;
+
+        if (empty($shopItem->link)) {
+            return back()->withErrors(['error' => 'Este item não possui um link de pagamento configurado']);
+        }
+
+        return response()->json([
+            'payment_link' => $linkComUuid
+        ]);
+    }
+
     protected function deleteImageIfNotDefault($path): void
     {
         if ($path && Storage::disk('public')->exists($path) && $path !== 'shop-item-photos/default.png') {
