@@ -145,7 +145,8 @@ class KiwifyWebhookController extends Controller
             'product_type' => $data['product_type'] ?? null,
             'amount' => $data['Commissions']['charge_amount'] ?? null,
             'shop_item_id' => (string)($data['Product']['product_id'] ?? null),
-            'user_id' => $this->getUserIdFromCustomerData($data)
+            'user_id' => $this->getUserIdFromCustomerData($data),
+            'uuid' => $data['TrackingParameters']['src'] ?? null
         ];
 
         try {
@@ -165,7 +166,7 @@ class KiwifyWebhookController extends Controller
                 }
             }
 
-            // Se não encontrar pelo UUID, usa o método padrão
+            // Se não tiver UUID, registra a compra com UUID nulo
             Purchase::updateOrCreate(
                 ['order_id' => $data['order_id']],
                 $purchaseData
@@ -173,7 +174,8 @@ class KiwifyWebhookController extends Controller
             Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage}", [
                 'order_id' => $data['order_id'],
                 'order_ref' => $data['order_ref'] ?? 'unknown',
-                'order_status' => $data['order_status'] ?? 'unknown'
+                'order_status' => $data['order_status'] ?? 'unknown',
+                'uuid' => $uuid ?? 'nulo'
             ]);
         } catch (\Exception $e) {
             Log::error(self::LOG_PREFIX . ' Erro ao atualizar compra', [
