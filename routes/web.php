@@ -28,15 +28,16 @@ use App\Http\Controllers\KiwifyWebhookController;
 */
 
 Route::get('/', function () {
+    $shopItems = app(ShopItemController::class)->getTopThreeItems();
+    
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'shopItems' => $shopItems,
     ]);
 });
-
-
 
 // status
 Route::get('status', [StatusController::class, 'show'])->name('status');

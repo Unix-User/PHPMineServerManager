@@ -10,7 +10,7 @@ class ShopItem extends Model
 {
     use HasFactory;
     protected $table = 'shop_items';
-    protected $fillable = ['name', 'description', 'price', 'item_photo_path'];
+    protected $fillable = ['name', 'description', 'price', 'item_photo_path', 'link'];
 
     public function purchases()
     {
