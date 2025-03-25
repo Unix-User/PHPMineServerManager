@@ -137,7 +137,6 @@ class KiwifyWebhookController extends Controller
     private function updatePurchaseStatus(array $data, string $status, string $logMessage): void
     {
         $purchaseData = [
-            'order_id' => $data['order_id'],
             'order_ref' => $data['order_ref'] ?? null,
             'order_status' => $data['order_status'] ?? null,
             'status' => $status,
@@ -166,11 +165,18 @@ class KiwifyWebhookController extends Controller
                 }
             }
 
-            // Se não tiver UUID, registra a compra com UUID nulo
-            Purchase::updateOrCreate(
-                ['order_id' => $data['order_id']],
-                $purchaseData
-            );
+            // Busca a compra pelo order_id
+            $purchase = Purchase::where('order_id', $data['order_id'])->first();
+            
+            if ($purchase) {
+                // Atualiza a compra existente sem modificar o order_id
+                $purchase->update($purchaseData);
+            } else {
+                // Cria nova compra com todos os dados
+                $purchaseData['order_id'] = $data['order_id'];
+                Purchase::create($purchaseData);
+            }
+
             Log::info(self::LOG_PREFIX . " Status do pedido atualizado para {$logMessage}", [
                 'order_id' => $data['order_id'],
                 'order_ref' => $data['order_ref'] ?? 'unknown',
