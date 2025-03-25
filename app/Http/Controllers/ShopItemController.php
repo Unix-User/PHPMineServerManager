@@ -15,6 +15,7 @@ class ShopItemController extends Controller
         'description' => 'required',
         'price' => 'required|numeric',
         'item_photo_path' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        'link' => 'nullable|url|max:2048',
     ];
 
     protected function getImageUrl($path): string

@@ -16,6 +16,7 @@ const form = reactive({
     description: null,
     price: null,
     item_photo_path: '/storage/shop-item-photos/default.png',
+    link: null,
 });
 const imageFile = ref(null);
 const imagePreview = ref(null);
@@ -61,6 +62,7 @@ const save = () => {
     formData.append('name', form.name);
     formData.append('description', form.description);
     formData.append('price', form.price);
+    formData.append('link', form.link);
     
     if (imageFile.value) {
         formData.append('item_photo_path', imageFile.value);
@@ -75,6 +77,7 @@ const update = () => {
     formData.append('name', form.name);
     formData.append('description', form.description);
     formData.append('price', form.price);
+    formData.append('link', form.link);
     
     if (imageFile.value) {
         formData.append('item_photo_path', imageFile.value);
@@ -161,6 +164,12 @@ const filteredItems = () => {
     
     return items;
 };
+
+const buyItem = (link) => {
+    if (link) {
+        window.open(link, '_blank');
+    }
+};
 </script>
 
 <template>
@@ -176,7 +185,7 @@ const filteredItems = () => {
                             class="w-full h-10 rounded-lg bg-white/80 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 
                             focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all px-3" 
                             aria-label="Buscar itens" />
-                        <span class="absolute right-3 top-2.5 text-gray-400">
+                        <span class="absolute right-3 top 2.5 text-gray-400">
                             <i class="fas fa-search"></i>
                         </span>
                     </div>
@@ -240,9 +249,9 @@ const filteredItems = () => {
                                 <p class="text-gray-700 dark:text-gray-300 text-base mt-2 mb-4 flex-grow transition-colors duration-300">{{ row.description }}</p>
                                 
                                 <div class="mt-auto flex justify-center">
-                                    <button class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg">
+                                    <a :href="row.link" target="_blank" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg text-center">
                                         <i class="fas fa-shopping-cart mr-2"></i> Comprar Agora
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                             
@@ -274,6 +283,12 @@ const filteredItems = () => {
                                         <TextInput id="price" v-model="form.price" type="number" class="mt-1 block w-full bg-white/50 dark:bg-gray-600/50"
                                             autocomplete="price" />
                                         <p class="text-red-500 text-xs italic mt-1" v-if="errors.price">{{ errors.price }}</p>
+                                    </div>
+                                    <div>
+                                        <InputLabel for="link" value="Link de Pagamento" class="text-gray-800 dark:text-gray-200" />
+                                        <TextInput id="link" v-model="form.link" type="url" class="mt-1 block w-full bg-white/50 dark:bg-gray-600/50"
+                                            placeholder="https://exemplo.com/pagamento" />
+                                        <p class="text-red-500 text-xs italic mt-1" v-if="errors.link">{{ errors.link }}</p>
                                     </div>
                                     <div>
                                         <InputLabel for="image" value="Imagem" class="text-gray-800 dark:text-gray-200" />

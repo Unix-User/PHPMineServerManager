@@ -7,6 +7,7 @@ use App\Models\Team;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\PrettyPrinter\Standard;
 
 class AdminUserSeeder extends Seeder
 {
@@ -23,7 +24,19 @@ class AdminUserSeeder extends Seeder
                 'email' => env('ADMIN_EMAIL', 'admin@admin.com'),
                 'password' => env('ADMIN_PASSWORD', 'SecurePassword'),
                 'role' => env('ADMIN_ROLE', 'admin')
-            ]
+            ],
+            // [
+            //     'name' => 'Mod',
+            //     'email' => 'mod@example.com',
+            //     'password' => env('ADMIN_PASSWORD', 'SecurePassword'),
+            //     'role' => 'editor'
+            // ],
+            // [
+            //     'name' => 'User',
+            //     'email' => 'user@example.com',
+            //     'password' => env('ADMIN_PASSWORD', 'SecurePassword'),
+            //     'role' => 'standard'
+            // ],
         ];
 
         foreach ($users as $user) {
