@@ -14,6 +14,7 @@ use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\JsonApiReloadedController;
 use Illuminate\Http\Request as HttpRequest;
 use App\Http\Controllers\AccountLinkController;
+use App\Http\Controllers\KiwifyWebhookController;
 
 /*
 --------------------------------------------------------------------------
@@ -41,7 +42,7 @@ Route::get('/', function () {
 Route::get('status', [StatusController::class, 'show'])->name('status');
 
 // discord invite
-Route::get('invite', fn () => redirect(env('DISCORD_INVITE_URL')))->name('invite');
+Route::get('invite', fn() => redirect(env('DISCORD_INVITE_URL')))->name('invite');
 
 // other
 Route::get('donations', [MinecraftController::class, 'donations'])->name('donations');
@@ -89,12 +90,13 @@ Route::middleware([
     'verified',
 ])->group(function () {
     // pages
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
-    Route::get('/map', fn () => Inertia::render('MapIframe'))->name('map');
-    Route::get('/factions', fn () => Inertia::render('Factions'))->name('factions');
-    Route::get('/help', fn () => Inertia::render('Help'));
-    Route::get('/updates', fn () => Inertia::render('UpdatesPage'))->name('updates');
-    
+    Route::get('/home', fn() => Inertia::render('Home'))->name('home');
+
+    Route::get('/map', fn() => Inertia::render('MapIframe'))->name('map');
+    Route::get('/factions', fn() => Inertia::render('Factions'))->name('factions');
+    Route::get('/help', fn() => Inertia::render('Help'));
+    Route::get('/updates', fn() => Inertia::render('UpdatesPage'))->name('updates');
+
     // shop
     Route::get('/shop', [ShopItemController::class, 'index'])->name('shop');
     Route::resource('shop/items', ShopItemController::class)->names([
@@ -103,7 +105,7 @@ Route::middleware([
         'update' => 'shop.items.update',
         'destroy' => 'shop.items.delete',
     ]);
-    
+
 
     // // updates
     // Route::resource('update/posts', UpdatePostsController::class)->names([
@@ -114,6 +116,13 @@ Route::middleware([
     //     'destroy' => 'update.posts.delete',
     // ]);
 
+    Route::get('/dashboard', function () {
+        if (Auth::user()->roles->pluck('name')->contains('admin')) {
+            return Inertia::render('Dashboard');
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    })->name('dashboard');
     // backups
     Route::get('/backups', function () {
         if (Auth::user()->roles->pluck('name')->contains('admin')) {
@@ -145,7 +154,7 @@ Route::middleware([
         Route::get('get-updates', [DiscordController::class, 'getServerUpdates'])->name('get-updates');
         Route::post('webhook', [DiscordController::class, 'handleWebhook'])->name('webhook');
     });
-    
+
     Route::prefix('api')->group(function () {
         Route::get('/get-latest-chats', function () {
             $req = new HttpRequest;
@@ -245,7 +254,7 @@ Route::middleware([
             }
         })->name('api.getJavaMemoryUsage');
     });
-    
+
     Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
     Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
     Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
@@ -262,3 +271,4 @@ Route::middleware([
     })->where('directoryPath', '.*')->name('list-directory');
 });
 
+Route::post('/kiwify/webhook', [KiwifyWebhookController::class, 'handle'])->name('kiwify.webhook');

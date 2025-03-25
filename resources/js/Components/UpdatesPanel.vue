@@ -83,7 +83,7 @@
 <script>
 import { ref, onMounted, nextTick, reactive } from "vue";
 import axios from "axios";
-import { marked } from "marked"; // Corrected import statement for marked
+import { marked } from "marked";
 
 export default {
     setup() {
@@ -94,8 +94,10 @@ export default {
         const getMessages = async () => {
             try {
                 const response = await axios.get("/discord/get-updates");
-                if (response.status === 200) {
-                    messages.value = response.data.reverse(); // Reverse the order of messages
+                if (response.status === 200 && response.data) {
+                    // Verifica se os dados são um array antes de tentar reverter
+                    const data = Array.isArray(response.data) ? response.data : [];
+                    messages.value = [...data].reverse();
                     await Promise.all(messages.value.map(async (message) => {
                         await Promise.all(message.attachments.map(async (attachment) => {
                             if (isTextAttachment(attachment.url)) {
@@ -119,7 +121,7 @@ export default {
         onMounted(async () => {
             await getMessages();
             nextTick(() => {
-                scrollToBottom(); // Ensure the scroll to bottom is called after messages are fetched and DOM is updated
+                scrollToBottom();
             });
         });
 

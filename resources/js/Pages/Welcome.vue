@@ -160,26 +160,28 @@ const prevHero = () => currentHeroIndex.value = (currentHeroIndex.value - 1 + he
     <div class="landing-page-background">
     <Head title=" UdiaNIX Minecraft - Servidor Medieval #1 de Uberlândia-MG" />
 
-    <!-- Hero Section - Transparent -->
-    <section class="hero-section relative">
-        <iframe class="hero-video w-full h-full absolute top-0 left-0"
-            src="https://www.youtube.com/embed/xcjT271y0oE?autoplay=1&mute=1&loop=1&playlist=xcjT271y0oE&controls=0&modestbranding=1&rel=0"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-        <div class="hero-overlay"></div>
-        <div class="hero-content container relative z-20">
-            <h1 class="hero-title animate-fade-in-up text-white">
-                Viva a Era Medieval no Minecraft
-            </h1>
-            <p class="hero-subtitle animate-fade-in-up delay-100 text-gray-200">
-                O servidor medieval definitivo para jogadores de Uberlândia-MG. Construa seu reino, lute por poder e
-                socialize em um mundo imersivo e dinâmico.
-            </p>
-            <div class="hero-buttons animate-fade-in-up delay-200">
-                <Link :href="route('register')" class="btn-primary btn-hero rounded-md">
-                <i class="fa-solid fa-play mr-2"></i> Junte-se Gratuitamente
+    <div
+        class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+        :style="`background-image: url('storage/background.png')`"
+    >
+        <div
+            v-if="canLogin"
+            class="sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10"
+        >
+            <Link
+                v-if="$page.props.auth.user"
+                :href="route('home')"
+                class="font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+            >
+                Painel
+            </Link>
+
+            <template v-else>
+                <Link
+                    :href="route('login')"
+                    class="font-semibold text-green-300 hover:text-green-900 dark:text-green-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                >
+                    Entrar
                 </Link>
                 <Link :href="gameplayInfo.discordLink" target="_blank" class="btn-secondary btn-hero rounded-md">
                 <i class="fa-brands fa-discord mr-2"></i> Nossa Comunidade Discord

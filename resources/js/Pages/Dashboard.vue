@@ -1,6 +1,9 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Welcome from '@/Components/Welcome.vue';
+import RconConsole from '@/Components/RconConsole.vue';
+import GoogleDriveBackups from '@/Components/GoogleDriveBackups.vue';
+import FileManager from '@/Components/FileManager.vue';
 </script>
 
 <template>
@@ -15,7 +18,9 @@ import Welcome from '@/Components/Welcome.vue';
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm overflow-hidden shadow-xl rounded-lg transition-all duration-300 ease-in-out hover:shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
                     <div class="p-6 sm:p-8">
-                        <Welcome class="transition-opacity duration-300 hover:opacity-90" />
+                        <RconConsole class="transition-opacity duration-300 hover:opacity-90" />
+                        <GoogleDriveBackups class="transition-opacity duration-300 hover:opacity-90 mt-6" />
+                        <FileManager class="transition-opacity duration-300 hover:opacity-90 mt-6" />
                     </div>
                 </div>
             </div>
