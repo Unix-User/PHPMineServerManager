@@ -140,62 +140,46 @@ class ShopItemController extends Controller
 
     public function buy(int $id)
     {
-        $shopItem = ShopItem::findOrFail($id);
-        $uuid = Str::uuid();
-        $linkComUuid = $shopItem->link . '?src=' . $uuid;
-
-        // Registra a tentativa de compra no log
-        Log::info('Solicitação de compra iniciada', [
-            'shop_item_id' => $shopItem->id,
-            'user_id' => auth()->id(),
-            'uuid' => $uuid,
-            'price' => $shopItem->price
-        ]);
-
-        if (empty($shopItem->link)) {
-            // Registra o erro de link ausente
-            Log::error('Tentativa de compra sem link de pagamento', [
-                'shop_item_id' => $shopItem->id,
-                'user_id' => auth()->id()
-            ]);
-            return back()->withErrors(['error' => 'Este item não possui um link de pagamento configurado']);
+        // Valida se o usuário está autenticado
+        if (!auth()->check()) {
+            return back()->withErrors(['error' => 'Você precisa estar logado para realizar uma compra']);
         }
 
         try {
-            // Cria um registro de compra pendente para consulta posterior pelo webhook
-            Purchase::create([
-                'shop_item_id' => $shopItem->id,
-                'uuid' => $uuid,
-                'status' => 'pending',
-                'order_id' => 'pendente',
-                'order_ref' => null,
-                'order_status' => null,
-                'customer_email' => auth()->user()->email,
-                'product_type' => null,
-                'amount' => (int) $shopItem->price, // Converte para inteiro
-                'user_id' => auth()->id()
-            ]);
+            // Busca o item da loja
+            $shopItem = ShopItem::findOrFail($id);
+            
+            // Valida se o item possui link de pagamento
+            if (empty($shopItem->link)) {
+                return back()->withErrors(['error' => 'Este item não possui link de pagamento configurado']);
+            }
 
-            // Registra a criação do registro de compra
-            Log::info('Registro de compra criado com sucesso', [
-                'shop_item_id' => $shopItem->id,
-                'uuid' => $uuid,
-                'user_id' => auth()->id()
-            ]);
+            // Gera um UUID único para rastreamento
+            $uuid = Str::uuid();
+            $paymentLink = $shopItem->link . '?src=' . $uuid;
+            
+            // Cria e salva o registro da compra com campos obrigatórios
+            $purchase = new Purchase();
+            $purchase->uuid = $uuid;
+            $purchase->status = 'pending';
+            $purchase->customer_email = auth()->user()->email;
+            $purchase->amount = $shopItem->price; // Valor em centavos
+            $purchase->user_id = auth()->id();
+            $purchase->order_id = $uuid; // Usa o UUID como order_id para evitar conflitos
+            $purchase->save();
 
+            // Retorna o link de pagamento para o frontend
             return response()->json([
-                'payment_link' => $linkComUuid
+                'payment_link' => $paymentLink
             ]);
 
         } catch (\Exception $e) {
-            // Registra qualquer erro durante o processo
-            Log::error('Erro ao processar compra', [
-                'shop_item_id' => $shopItem->id,
+            Log::error('Erro no processo de compra', [
+                'shop_item_id' => $id,
                 'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-                'stacktrace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
-            return back()->withErrors(['error' => 'Ocorreu um erro ao processar sua compra']);
+            return back()->withErrors(['error' => 'Erro ao processar sua compra. Tente novamente mais tarde.']);
         }
     }
 

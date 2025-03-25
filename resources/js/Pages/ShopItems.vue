@@ -14,7 +14,7 @@ const isOpen = ref(false);
 const form = reactive({
     name: null,
     description: null,
-    price: null,
+    price: null, // Preço em centavos
     item_photo_path: '/storage/shop-item-photos/default.png',
     link: null,
 });
@@ -61,7 +61,7 @@ const save = () => {
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('description', form.description);
-    formData.append('price', form.price);
+    formData.append('price', Math.round(form.price * 100)); // Converte para centavos
     formData.append('link', form.link);
     
     if (imageFile.value) {
@@ -76,7 +76,7 @@ const update = () => {
     formData.append('_method', 'PUT');
     formData.append('name', form.name);
     formData.append('description', form.description);
-    formData.append('price', form.price);
+    formData.append('price', Math.round(form.price * 100)); // Converte para centavos
     formData.append('link', form.link);
     
     if (imageFile.value) {
@@ -172,11 +172,19 @@ const buyItem = (item) => {
                 if (response.data.payment_link) {
                     window.open(response.data.payment_link, '_blank', 'noopener,noreferrer');
                 } else {
+                    console.log(response);
                     alert('Erro ao gerar link de pagamento.');
                 }
             })
             .catch(error => {
-                alert('Erro ao processar compra.');
+                // Exibe mensagens de erro específicas do backend
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                } else if (error.response && error.response.data && error.response.data.error) {
+                    alert(error.response.data.error);
+                } else {
+                    alert('Erro ao processar compra. Tente novamente mais tarde.');
+                }
             });
     }
 };
@@ -233,7 +241,7 @@ const buyItem = (item) => {
                             class="rounded-lg overflow-hidden shadow-lg bg-white/95 dark:bg-gray-700/95 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col relative">
                             <div class="absolute top-0 right-0 z-10 m-3">
                                 <div class="bg-teal-600 text-white font-bold text-xl px-4 py-2 rounded-lg shadow-lg transform rotate-3 hover:rotate-0 transition-all duration-300 animate-pulse">
-                                    R$ {{ row.price }}
+                                    R$ {{ (row.price / 100).toFixed(2).replace('.', ',') }}
                                 </div>
                             </div>
                             
