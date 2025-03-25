@@ -9,13 +9,22 @@ class KiwifyWebhookController extends Controller
 {
     public function handle(Request $request)
     {
+        // Verificar se é uma requisição HEAD
+        if ($request->isMethod('head')) {
+            Log::info('[Kiwify Webhook] Requisição HEAD recebida');
+            return response()->json(['status' => 'ok']);
+        }
+
         Log::info('[Kiwify Webhook] Início do processamento');
 
-        // 1. Obter conteúdo bruto e validar JSON
+        // 1. Obter e validar payload JSON
         $rawPayload = $request->getContent();
-        Log::debug('[Kiwify Webhook] Conteúdo bruto recebido', ['raw' => $rawPayload]);
+        Log::debug('[Kiwify Webhook] Conteúdo bruto recebido', ['size' => strlen($rawPayload) . ' bytes']);
 
-        $payload = json_decode($rawPayload, true);
+        // Remover comentários e limpar o payload
+        $cleanedPayload = $this->cleanJsonPayload($rawPayload);
+        $payload = json_decode($cleanedPayload, true);
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::error('[Kiwify Webhook] Payload JSON inválido', ['raw' => $rawPayload]);
             return response()->json(['error' => 'Invalid JSON'], 400);
@@ -30,31 +39,22 @@ class KiwifyWebhookController extends Controller
             return response()->json(['error' => 'Server configuration error'], 500);
         }
 
-        Log::debug('[Kiwify Webhook] Parâmetros de verificação', [
-            'signature_recebida' => $signature,
-            'secret_key' => substr($secretKey, 0, 4) . '...' // Log parcial por segurança
-        ]);
-
         if (!$this->verifySignature($rawPayload, $signature, $secretKey)) {
             Log::warning('[Kiwify Webhook] Assinatura inválida', [
-                'payload' => $rawPayload,
-                'signature_recebida' => $signature
+                'signature_recebida' => $signature,
+                'payload_size' => strlen($rawPayload) . ' bytes'
             ]);
             return response()->json(['error' => 'Invalid signature'], 401);
         }
 
         // 3. Processar eventos
         Log::info('[Kiwify Webhook] Payload válido recebido', [
-            'evento' => $payload['event'] ?? 'nenhum',
-            'payload_size' => strlen($rawPayload) . ' bytes'
+            'event_type' => $payload['webhook_event_type'] ?? 'unknown',
+            'order_id' => $payload['order_id'] ?? 'unknown'
         ]);
 
         try {
-            if (isset($payload['event'])) {
-                $this->processarEvento($payload['event'], $payload);
-            } else {
-                Log::warning('[Kiwify Webhook] Evento não especificado', $payload);
-            }
+            $this->processarEvento($payload);
         } catch (\Exception $e) {
             Log::error('[Kiwify Webhook] Erro no processamento', [
                 'erro' => $e->getMessage(),
@@ -64,7 +64,19 @@ class KiwifyWebhookController extends Controller
         }
 
         Log::info('[Kiwify Webhook] Processamento concluído com sucesso');
-        return response()->json(['status' => 'success']);
+        return response()->json(['status' => 'ok']);
+    }
+
+    private function cleanJsonPayload(string $payload): string
+    {
+        // Remover comentários de linha única
+        $payload = preg_replace('!/\*.*?\*/!s', '', $payload);
+        $payload = preg_replace('!//.*?\n!', '', $payload);
+        
+        // Remover espaços em excesso e quebras de linha
+        $payload = preg_replace('/\s+/', ' ', $payload);
+        
+        return trim($payload);
     }
 
     private function verifySignature(string $rawPayload, ?string $signature, string $secretKey): bool
@@ -75,39 +87,66 @@ class KiwifyWebhookController extends Controller
         }
 
         $calculatedSignature = hash_hmac('sha1', $rawPayload, $secretKey);
-        Log::debug('[Kiwify Webhook] Assinatura calculada', ['assinatura' => $calculatedSignature]);
-
         return hash_equals($calculatedSignature, $signature);
     }
 
-    private function processarEvento(string $evento, array $dados)
+    private function processarEvento(array $dados)
     {
-        $logContext = ['evento' => $evento, 'dados' => $dados];
-        Log::info("[Kiwify Webhook] Iniciando processamento para evento: $evento", $logContext);
+        $eventType = $dados['webhook_event_type'] ?? 'unknown';
+        $logContext = [
+            'event_type' => $eventType,
+            'order_id' => $dados['order_id'] ?? 'unknown',
+            'product_type' => $dados['product_type'] ?? 'unknown'
+        ];
 
-        switch ($evento) {
-            case 'order.paid':
-                $this->handleOrderPaid($dados);
+        Log::info("[Kiwify Webhook] Processando evento: $eventType", $logContext);
+
+        switch ($eventType) {
+            case 'order_approved':
+                $this->handleOrderApproved($dados);
                 break;
-            case 'product.updated':
-                $this->handleProductUpdated($dados);
+            case 'subscription_created':
+                $this->handleSubscriptionCreated($dados);
+                break;
+            case 'subscription_cancelled':
+                $this->handleSubscriptionCancelled($dados);
                 break;
             default:
-                Log::warning("[Kiwify Webhook] Evento não implementado: $evento", $logContext);
+                Log::warning("[Kiwify Webhook] Evento não implementado: $eventType", $logContext);
         }
-
-        Log::info("[Kiwify Webhook] Processamento concluído para evento: $evento");
     }
 
-    private function handleOrderPaid(array $dados)
+    private function handleOrderApproved(array $dados)
     {
-        // Implementar lógica para pedidos pagos
-        Log::info('[Kiwify Webhook] Processando pedido pago', ['order_id' => $dados['order_id'] ?? 'desconhecido']);
+        Log::info('[Kiwify Webhook] Processando pedido aprovado', [
+            'order_id' => $dados['order_id'] ?? 'unknown',
+            'customer_email' => $dados['Customer']['email'] ?? 'unknown',
+            'amount' => $dados['Commissions']['charge_amount'] ?? 'unknown',
+            'product_type' => $dados['product_type'] ?? 'unknown'
+        ]);
+        
+        // Implementar lógica para pedidos aprovados
     }
 
-    private function handleProductUpdated(array $dados)
+    private function handleSubscriptionCreated(array $dados)
     {
-        // Implementar lógica para produtos atualizados
-        Log::info('[Kiwify Webhook] Processando produto atualizado', ['product_id' => $dados['product_id'] ?? 'desconhecido']);
+        Log::info('[Kiwify Webhook] Processando assinatura criada', [
+            'subscription_id' => $dados['subscription_id'] ?? 'unknown',
+            'plan_name' => $dados['Subscription']['plan']['name'] ?? 'unknown',
+            'next_payment' => $dados['Subscription']['next_payment'] ?? 'unknown',
+            'frequency' => $dados['Subscription']['plan']['frequency'] ?? 'unknown'
+        ]);
+        
+        // Implementar lógica para novas assinaturas
+    }
+
+    private function handleSubscriptionCancelled(array $dados)
+    {
+        Log::info('[Kiwify Webhook] Processando assinatura cancelada', [
+            'subscription_id' => $dados['subscription_id'] ?? 'unknown',
+            'cancelation_reason' => $dados['Subscription']['cancelation_reason'] ?? 'unknown'
+        ]);
+        
+        // Implementar lógica para assinaturas canceladas
     }
 }
