@@ -140,8 +140,8 @@ class KiwifyWebhookController extends Controller
             'customer_email' => $data['Customer']['email'] ?? null,
             'product_type' => $data['product_type'] ?? null,
             'amount' => $data['Commissions']['charge_amount'] ?? null,
-            'shop_item_id' => $data['Product']['product_id'] ?? null,
-            'user_id' => $this->getUserIdFromCustomerData($data) // Adicionado mapeamento de user_id
+            'shop_item_id' => (string)($data['Product']['product_id'] ?? null),
+            'user_id' => $this->getUserIdFromCustomerData($data)
         ];
 
         try {
