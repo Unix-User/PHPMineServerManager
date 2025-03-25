@@ -171,7 +171,6 @@ const buyItem = (link) => {
     }
 };
 </script>
-
 <template>
     <AppLayout title="Shop Items">
         <template #header>
@@ -200,7 +199,7 @@ const buyItem = (link) => {
                         <option value="name-desc">Nome (Z-A)</option>
                     </select>
                     <div v-if="page.props.user.roles.includes('admin')">
-                        <PrimaryButton @click="toggleModal" class="h-10 w-full sm:w-auto hover:scale-105 transition-transform">
+                        <PrimaryButton @click="toggleModal" class="h-10 w-full sm:w-auto hover:scale-105 transition-transform rounded-lg">
                             <i class="fas fa-plus-circle mr-2"></i> Novo Item
                         </PrimaryButton>
                     </div>
@@ -223,7 +222,7 @@ const buyItem = (link) => {
                         <div v-for="(row, index) in filteredItems()" :key="index"
                             class="rounded-lg overflow-hidden shadow-lg bg-white/95 dark:bg-gray-700/95 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col relative">
                             <div class="absolute top-0 right-0 z-10 m-3">
-                                <div class="bg-primary-600 text-white font-bold text-xl px-4 py-2 rounded-lg shadow-lg transform rotate-3 hover:rotate-0 transition-all duration-300 animate-pulse">
+                                <div class="bg-teal-600 text-white font-bold text-xl px-4 py-2 rounded-lg shadow-lg transform rotate-3 hover:rotate-0 transition-all duration-300 animate-pulse">
                                     R$ {{ row.price }}
                                 </div>
                             </div>
@@ -235,10 +234,10 @@ const buyItem = (link) => {
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 <div v-if="page.props.user.roles.includes('admin')" 
                                     class="absolute bottom-0 left-0 right-0 p-4 flex justify-center gap-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                    <PrimaryButton @click="edit(row)" class="hover:scale-105 transition-transform">
+                                    <PrimaryButton @click="edit(row)" class="hover:scale-105 transition-transform rounded-lg">
                                         <i class="fas fa-edit mr-1"></i> Editar
                                     </PrimaryButton>
-                                    <SecondaryButton @click="deleteRow(row)" class="hover:scale-105 transition-transform">
+                                    <SecondaryButton @click="deleteRow(row)" class="hover:scale-105 transition-transform rounded-lg">
                                         <i class="fas fa-trash-alt mr-1"></i> Excluir
                                     </SecondaryButton>
                                 </div>
@@ -249,7 +248,7 @@ const buyItem = (link) => {
                                 <p class="text-gray-700 dark:text-gray-300 text-base mt-2 mb-4 flex-grow transition-colors duration-300">{{ row.description }}</p>
                                 
                                 <div class="mt-auto flex justify-center">
-                                    <a :href="row.link" target="_blank" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg text-center">
+                                    <a :href="row.link" target="_blank" class="btn btn-primary btn-lg w-full flex items-center justify-center rounded-lg">
                                         <i class="fas fa-shopping-cart mr-2"></i> Comprar Agora
                                     </a>
                                 </div>
@@ -330,3 +329,18 @@ const buyItem = (link) => {
         </div>
     </AppLayout>
 </template>
+
+
+<style>
+.btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white dark:text-gray-900 dark:bg-orange-500 hover:dark:bg-orange-600;
+}
+
+.btn-secondary {
+    @apply bg-gray-500 hover:bg-gray-600 text-white dark:text-gray-900 dark:bg-gray-700 hover:dark:bg-gray-800;
+}
+
+.btn-lg {
+    @apply py-3 px-6 text-lg;
+}
+</style>
