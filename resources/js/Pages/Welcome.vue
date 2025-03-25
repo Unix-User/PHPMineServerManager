@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, onUnmounted } from 'vue';
 import axios from 'axios';
 
 defineProps({
@@ -162,6 +162,38 @@ const scrollToContent = () => {
         behavior: 'smooth'
     });
 };
+
+const countdown = ref({
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+});
+
+const updateCountdown = () => {
+    let now = new Date();
+    let targetDate = new Date();
+    targetDate.setDate(now.getDate() + 1);
+    targetDate.setHours(0, 0, 0, 0);
+
+    let diff = targetDate.getTime() - now.getTime();
+
+    let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    countdown.value.hours = hours;
+    countdown.value.minutes = minutes;
+    countdown.value.seconds = seconds;
+};
+
+onMounted(() => {
+    updateCountdown();
+    const intervalId = setInterval(updateCountdown, 1000);
+
+    onUnmounted(() => {
+        clearInterval(intervalId);
+    });
+});
 
 const scrollToSection = (sectionId, offset = 100) => {
     const section = document.getElementById(sectionId);
@@ -386,7 +418,7 @@ const scrollToSection = (sectionId, offset = 100) => {
                             <Link :href="route('shop')"
                                 class="btn-primary btn-lg w-full flex items-center justify-center hover:bg-opacity-90 transition-colors duration-200 text-lg font-semibold rounded-md">
                                 <i class="fa-solid fa-shopping-cart mr-2"></i>
-                                <span>Comprar por R$ {{ typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A' }}</span>
+                                <span>Comprar por R$ {{ parseFloat(item.price).toFixed(2) }}</span>
                             </Link>
 
                             <!-- Selo de Garantia e Benefícios -->
@@ -413,15 +445,15 @@ const scrollToSection = (sectionId, offset = 100) => {
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Oferta Especial por Tempo Limitado!</h3>
                     <div class="flex justify-center gap-4 mb-6">
                         <div class="bg-white/60 dark:bg-gray-700/60 p-4 rounded-lg">
-                            <span class="text-3xl font-bold text-yellow-400">24</span>
+                            <span class="text-3xl font-bold text-yellow-400" id="countdown-hours">{{ String(countdown.hours).padStart(2, '0') }}</span>
                             <span class="block text-sm text-gray-500 dark:text-gray-400">Horas</span>
                         </div>
                         <div class="bg-white/60 dark:bg-gray-700/60 p-4 rounded-lg">
-                            <span class="text-3xl font-bold text-yellow-400">59</span>
+                            <span class="text-3xl font-bold text-yellow-400" id="countdown-minutes">{{ String(countdown.minutes).padStart(2, '0') }}</span>
                             <span class="block text-sm text-gray-500 dark:text-gray-400">Minutos</span>
                         </div>
                         <div class="bg-white/60 dark:bg-gray-700/60 p-4 rounded-lg">
-                            <span class="text-3xl font-bold text-yellow-400">59</span>
+                            <span class="text-3xl font-bold text-yellow-400" id="countdown-seconds">{{ String(countdown.seconds).padStart(2, '0') }}</span>
                             <span class="block text-sm text-gray-500 dark:text-gray-400">Segundos</span>
                         </div>
                     </div>
