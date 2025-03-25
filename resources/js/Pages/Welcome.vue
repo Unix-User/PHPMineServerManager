@@ -386,7 +386,7 @@ const scrollToSection = (sectionId, offset = 100) => {
                             <Link :href="route('shop')"
                                 class="btn-primary btn-lg w-full flex items-center justify-center hover:bg-opacity-90 transition-colors duration-200 text-lg font-semibold rounded-md">
                                 <i class="fa-solid fa-shopping-cart mr-2"></i>
-                                <span>Comprar por R$ {{ item.price.toFixed(2) }}</span>
+                                <span>Comprar por R$ {{ typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A' }}</span>
                             </Link>
 
                             <!-- Selo de Garantia e Benefícios -->
