@@ -50,6 +50,13 @@ class HandleInertiaRequests extends Middleware
                 'image:width' => 1200,
                 'image:height' => 630,
                 'description' => 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.',
+                'fb:app_id' => env('FACEBOOK_CLIENT_ID', '568238442004396'),
+                'twitter:card' => 'summary_large_image',
+                'twitter:site' => '@udianix',
+                'twitter:title' => 'UdiaNIX - Minecraft Server',
+                'twitter:description' => 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.',
+                'twitter:image' => asset('storage/background.png'),
+                'twitter:image:alt' => 'Banner do servidor UdiaNIX',
             ],
         ]);
     }

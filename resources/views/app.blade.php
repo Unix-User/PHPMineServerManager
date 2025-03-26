@@ -7,18 +7,26 @@
 
     <title inertia>{{ config('app.name', 'UdiaNIX - Minecraft Server') }}</title>
 
-    <!-- OpenGraph Tags -->
+    <!-- OpenGraph Tags Básicas -->
     <meta property="og:title" content="{{ $page['props']['og']['title'] ?? 'UdiaNIX - Minecraft Server' }}">
     <meta property="og:type" content="{{ $page['props']['og']['type'] ?? 'website' }}">
     <meta property="og:url" content="{{ $page['props']['og']['url'] ?? url()->current() }}">
     <meta property="og:image" content="{{ $page['props']['og']['image'] ?? asset('storage/background.png') }}">
-    <meta property="og:image:url" content="{{ $page['props']['og']['image:url'] ?? asset('storage/background.png') }}">
-    <meta property="og:image:secure_url" content="{{ $page['props']['og']['image:secure_url'] ?? secure_asset('storage/background.png') }}">
-    <meta property="og:image:type" content="{{ $page['props']['og']['image:type'] ?? 'image/png' }}">
-    <meta property="og:image:width" content="{{ $page['props']['og']['image:width'] ?? '1200' }}">
-    <meta property="og:image:height" content="{{ $page['props']['og']['image:height'] ?? '630' }}">
     <meta property="og:description" content="{{ $page['props']['og']['description'] ?? 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.' }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
+
+    <!-- Tags Específicas do Facebook -->
+    <meta property="fb:app_id" content="{{ env('FACEBOOK_CLIENT_ID', '568238442004396') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@udianix">
+    <meta name="twitter:title" content="{{ $page['props']['og']['title'] ?? 'UdiaNIX - Minecraft Server' }}">
+    <meta name="twitter:description" content="{{ $page['props']['og']['description'] ?? 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.' }}">
+    <meta name="twitter:image" content="{{ $page['props']['og']['image'] ?? asset('storage/background.png') }}">
+    <meta name="twitter:image:alt" content="Banner do servidor UdiaNIX">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
