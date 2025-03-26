@@ -44,6 +44,11 @@ class HandleInertiaRequests extends Middleware
                 'type' => 'website',
                 'url' => $request->url(),
                 'image' => asset('storage/background.png'),
+                'image:url' => asset('storage/background.png'),
+                'image:secure_url' => secure_asset('storage/background.png'),
+                'image:type' => 'image/png',
+                'image:width' => 1200,
+                'image:height' => 630,
                 'description' => 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.',
             ],
         ]);
