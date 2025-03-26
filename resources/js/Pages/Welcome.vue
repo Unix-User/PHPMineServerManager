@@ -537,7 +537,7 @@ const scrollToSection = (sectionId, offset = 100) => {
 
         <!-- Global Login/Register Links -->
         <div v-if="canLogin" class="auth-links">
-            <Link v-if="$page.props.auth.user" :href="route('dashboard')">
+            <Link v-if="$page.props.auth.user" :href="route('home')">
             Painel
             </Link>
             <template v-else>
