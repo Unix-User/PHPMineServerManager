@@ -12,6 +12,11 @@
     <meta property="og:type" content="{{ $page['props']['og']['type'] ?? 'website' }}">
     <meta property="og:url" content="{{ $page['props']['og']['url'] ?? url()->current() }}">
     <meta property="og:image" content="{{ $page['props']['og']['image'] ?? asset('storage/background.png') }}">
+    <meta property="og:image:url" content="{{ $page['props']['og']['image:url'] ?? asset('storage/background.png') }}">
+    <meta property="og:image:secure_url" content="{{ $page['props']['og']['image:secure_url'] ?? secure_asset('storage/background.png') }}">
+    <meta property="og:image:type" content="{{ $page['props']['og']['image:type'] ?? 'image/png' }}">
+    <meta property="og:image:width" content="{{ $page['props']['og']['image:width'] ?? '1200' }}">
+    <meta property="og:image:height" content="{{ $page['props']['og']['image:height'] ?? '630' }}">
     <meta property="og:description" content="{{ $page['props']['og']['description'] ?? 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.' }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
 
