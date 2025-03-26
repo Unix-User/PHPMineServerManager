@@ -22,7 +22,7 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@udianix">
+    <meta name="twitter:site" content="@udia_nix">
     <meta name="twitter:title" content="{{ $page['props']['og']['title'] ?? 'UdiaNIX - Minecraft Server' }}">
     <meta name="twitter:description" content="{{ $page['props']['og']['description'] ?? 'Aventure-se no melhor servidor medieval sediado em Uberlândia-MG. Construa, batalhe e desvende segredos em UdiaNIX.' }}">
     <meta name="twitter:image" content="{{ $page['props']['og']['image'] ?? asset('storage/background.png') }}">
