@@ -37,6 +37,10 @@ fi
 echo "Running database migrations..."
 php artisan migrate --force
 
+# Run optimizations and clearing
+echo "Bringing application out of maintenance mode..."
+php artisan optimize:clear
+
 # Exit maintenance mode
 echo "Bringing application out of maintenance mode..."
 php artisan up
