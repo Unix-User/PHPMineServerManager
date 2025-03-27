@@ -18,7 +18,7 @@ class CheckMinecraftChat extends Command
     private const RETRY_DELAY_SECONDS = 2;
     private const GRAVITY_MIN = 1;
     private const GRAVITY_MAX = 10;
-    private const MESSAGE_TIME_LIMIT = 3000; // 5 minutos em segundos
+    private const MESSAGE_TIME_LIMIT = 300;
 
     public function handle(OllamaService $ollamaService)
     {
@@ -46,7 +46,6 @@ class CheckMinecraftChat extends Command
         $messages = $response->original[0]['success'];
         $currentTime = time();
 
-        // Filtra mensagens com menos de 5 minutos
         return array_filter($messages, function($message) use ($currentTime) {
             return ($currentTime - $message['time']) <= self::MESSAGE_TIME_LIMIT;
         });
@@ -109,7 +108,7 @@ class CheckMinecraftChat extends Command
     private function buildAnalysisRequest(array $messages): array
     {
         return [
-            'model' => 'google_genai.gemini-2.0-flash-exp',
+            'model' => env('OLLAMA_MODEL', 'google_genai.gemini-2.0-flash-exp'),
             'messages' => [[
                 'role' => 'user',
                 'content' => $this->getAnalysisPrompt($messages)
@@ -267,7 +266,7 @@ class CheckMinecraftChat extends Command
             return trim($line) !== '';
         });
         foreach ($lines as $line) {
-            sleep(2);
+            sleep(1);
             try {
                 $this->sendChatMessage($player, "[§cStaff§r] Mr.Robot: " . trim($line));
                 
@@ -281,7 +280,7 @@ class CheckMinecraftChat extends Command
     private function generateWarningMessage(OllamaService $ollamaService, string $player, array $violations): string
     {
         $response = $ollamaService->generate([
-            'model' => 'google_genai.gemini-2.0-flash-exp',
+            'model' => env('OLLAMA_MODEL', 'google_genai.gemini-2.0-flash-exp'),
             'messages' => [[
                 'role' => 'user',
                 'content' => $this->getWarningPrompt($player, $violations)
