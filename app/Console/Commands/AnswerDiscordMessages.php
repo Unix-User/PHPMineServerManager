@@ -6,9 +6,9 @@ use Illuminate\Console\Command;
 use App\Http\Controllers\DiscordController;
 use App\Services\OllamaService;
 
-class CheckDiscordMessages extends Command
+class AnswerDiscordMessages extends Command
 {
-    protected $signature = 'discord:check-messages';
+    protected $signature = 'discord:answer-messages';
     protected $description = 'Check for new Discord messages and respond if necessary';
 
     public function handle(DiscordController $discordController, OllamaService $ollamaService)
