@@ -76,14 +76,23 @@ class DiscordController extends Controller
     private function handleBotResponse($content, OllamaService $ollamaService)
     {
         try {
-            $ollama_response = $ollamaService->generate(
-                env('OLLAMA_MODEL', 'llama3.2'),
-                $content
-            );
+            $prompt = "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$content}";
+            $ollama_response = $ollamaService->generate([
+                'model' => env('OLLAMA_MODEL', 'llama3.2'),
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ],
+                'stream' => false,
+                'system' => "You are Mr. Robot, a friendly AI assistant."
+            ]);
+            
             $this->sendBotMessage($ollama_response['response']);
             Log::info('Resposta do bot enviada', ['response' => $ollama_response['response']]);
         } catch (\Exception $e) {
-            Log::error('Erro ao gerar resposta do bot', ['error' => $e->getMessage(), 'content' => $content]); // Adicionado content ao log de erro
+            Log::error('Erro ao gerar resposta do bot', ['error' => $e->getMessage(), 'content' => $content]);
             $this->notifyAdminOfError($e);
         }
     }

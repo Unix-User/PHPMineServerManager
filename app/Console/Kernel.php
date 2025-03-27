@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
             ->onOneServer();
 
         $schedule->command('discord:check-messages')
-            ->fiveMinute()
+            ->fiveMinutes()
             ->withoutOverlapping()
             ->onOneServer();
     }
