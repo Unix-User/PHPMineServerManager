@@ -40,9 +40,6 @@ Route::get('/', function () {
     ]);
 });
 
-// status
-Route::get('status', [StatusController::class, 'show'])->name('status');
-
 // discord invite
 Route::get('invite', fn() => redirect(env('DISCORD_INVITE_URL')))->name('invite');
 
@@ -139,8 +136,6 @@ Route::middleware([
     Route::post('/run-poi-update', [MinecraftController::class, 'runPoiUpdate']);
     Route::post('/run-map-update', [MinecraftController::class, 'runMapUpdate']);
 
-    Route::get('busy', [StatusController::class, 'overviewerIsRunning'])->name('busy');
-
     Route::prefix('discord')->group(function () {
         Route::post('send-message', [DiscordController::class, 'sendMessage'])->name('send-message');
         Route::get('get-messages', [DiscordController::class, 'getChannelMessages'])->name('get-messages');
@@ -220,25 +215,6 @@ Route::middleware([
         })->name('api.online-players');
     });
 
-    Route::prefix('status')->group(function () {
-        Route::get('/check-connection', function () {
-            return app(JsonApiReloadedController::class)->checkServerConnection();
-        })->name('status.check-connection');
-
-        Route::get('/player-count', function () {
-            return app(JsonApiReloadedController::class)->getPlayerCount();
-        })->name('status.player-count');
-
-        Route::get('/server-version', function () {
-            return app(JsonApiReloadedController::class)->getServerVersion();
-        })->name('status.server-version');
-
-        Route::get('/get-java-memory-usage', function () {
-            return app(JsonApiReloadedController::class)->getJavaMemoryUsage();
-        })->name('status.getJavaMemoryUsage');
-    });
-
-
     Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
     Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
     Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
@@ -263,6 +239,31 @@ Route::middleware([
         }
     })->name('purchases.index');
 
+});
+
+
+Route::prefix('status')->group(function () {
+    Route::get('/rcon', function () {
+        return app(StatusController::class)->show();
+    })->name('status.rcon');
+    Route::get('/busy', function () {
+        return app(StatusController::class)->overviewerIsRunning();
+    })->name('busy');
+    Route::get('/check-connection', function () {
+        return app(JsonApiReloadedController::class)->checkServerConnection();
+    })->name('status.check-connection');
+
+    Route::get('/player-count', function () {
+        return app(JsonApiReloadedController::class)->getPlayerCount();
+    })->name('status.player-count');
+
+    Route::get('/server-version', function () {
+        return app(JsonApiReloadedController::class)->getServerVersion();
+    })->name('status.server-version');
+
+    Route::get('/get-java-memory-usage', function () {
+        return app(JsonApiReloadedController::class)->getJavaMemoryUsage();
+    })->name('status.getJavaMemoryUsage');
 });
 
 Route::post('/kiwify/webhook', [KiwifyWebhookController::class, 'handle'])->name('kiwify.webhook');
