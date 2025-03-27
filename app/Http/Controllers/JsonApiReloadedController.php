@@ -15,6 +15,48 @@ class JsonApiReloadedController extends Controller
     }
 
     /**
+     * Envia uma mensagem de broadcast com um nome específico
+     *
+     * @param Request $request Contendo a mensagem e o nome a ser usado
+     * @return array Resposta da API indicando sucesso ou falha
+     */
+    public function broadcastWithName(Request $request)
+    {
+        return $this->jsonApiResponse('broadcastWithName', [
+            $request->input('message'),
+            $request->input('name')
+        ]);
+    }
+
+    /**
+     * Envia uma mensagem privada para um jogador específico
+     *
+     * @param Request $request Contendo o nome do jogador e a mensagem
+     * @return array Resposta da API indicando sucesso ou falha
+     */
+    public function sendMessage(Request $request)
+    {
+        return $this->jsonApiResponse('sendMessage', [
+            $request->input('playerName'),
+            $request->input('message')
+        ], true);
+    }
+
+    /**
+     * Envia uma mensagem para todos os jogadores no servidor
+     *
+     * @param Request $request Contendo a mensagem a ser enviada
+     * @return array Resposta da API com o número de jogadores que receberam a mensagem
+     */
+    public function broadcast(Request $request)
+    {
+        return $this->jsonApiResponse('broadcast', [
+            $request->input('message')
+        ], true);
+    }
+
+    
+    /**
      * Adiciona conteúdo ao final de um arquivo
      *
      * @param Request $request Contendo o caminho do arquivo e o conteúdo a ser adicionado
@@ -156,7 +198,8 @@ class JsonApiReloadedController extends Controller
      */
     public function getLatestChatsWithLimit(Request $request)
     {
-        return $this->jsonApiResponse('getLatestChatsWithLimit', ['limit' => $request->input('limit', 10)]);
+        $limit = $request->input('limit', 30);
+        return $this->jsonApiResponse('getLatestChatsWithLimit', [$limit]);
     }
 
     /**

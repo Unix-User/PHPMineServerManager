@@ -7,15 +7,15 @@ use App\Http\Controllers\StatusController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DiscordController;
 use App\Http\Controllers\JsonApiReloadedController;
-use Illuminate\Http\Request as HttpRequest;
 use App\Http\Controllers\AccountLinkController;
 use App\Http\Controllers\KiwifyWebhookController;
 use App\Models\Purchase;
+use Illuminate\Support\Facades\Log;
 
 /*
 --------------------------------------------------------------------------
@@ -109,16 +109,6 @@ Route::middleware([
     ]);
     Route::post('shop/items/{id}/buy', [ShopItemController::class, 'buy'])->name('shop.items.buy');
 
-
-    // // updates
-    // Route::resource('update/posts', UpdatePostsController::class)->names([
-    //     'index' => 'update.posts',
-    //     'store' => 'update.posts.store',
-    //     'show' => 'update.posts.show',
-    //     'update' => 'update.posts.update',
-    //     'destroy' => 'update.posts.delete',
-    // ]);
-
     Route::get('/dashboard', function () {
         if (Auth::user()->roles->pluck('name')->contains('admin')) {
             return Inertia::render('Dashboard');
@@ -159,12 +149,16 @@ Route::middleware([
     });
 
     Route::prefix('api')->group(function () {
-        Route::get('/get-latest-chats', function () {
-            $req = new HttpRequest;
-            if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->getLatestChatsWithLimit($req->merge(['limit' => 30]));
-            } else {
-                abort(403, 'Unauthorized');
+        Route::get('/get-latest-chats/{limit?}', function ($limit = 30) {
+            try {
+                $request = new Request(['limit' => $limit]);
+                return app(JsonApiReloadedController::class)->getLatestChatsWithLimit($request);
+            } catch (\Exception $e) {
+                Log::error('Erro ao buscar últimos chats', [
+                    'error' => $e->getMessage(),
+                    'limit' => $limit
+                ]);
+                return response()->json(['error' => 'Erro ao processar solicitação'], 500);
             }
         })->name('api.get-latest-chats');
 
@@ -263,7 +257,7 @@ Route::middleware([
     Route::post('/minecraft-password/request-reset', [AccountLinkController::class, 'resetPassword'])->name('minecraft-password.request-reset');
     Route::post('/account/unlink', [AccountLinkController::class, 'unlinkAccount'])->name('account.unlink');
 
-    Route::get('/lsdirectory/{directoryPath?}', function (HttpRequest $request, $directoryPath = null) {
+    Route::get('/lsdirectory/{directoryPath?}', function (Request $request, $directoryPath = null) {
         if (empty($directoryPath)) {
             $directoryPath = './';
         } else {

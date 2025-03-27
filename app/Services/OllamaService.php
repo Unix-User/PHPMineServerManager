@@ -18,7 +18,7 @@ class OllamaService
 
     public function generate($data)
     {
-        $url = $this->baseUrl . '/api/generate';
+        $url = $this->baseUrl . '/chat/completions';
 
         Log::info('Sending request to Ollama', ['url' => $url, 'data' => $data]);
 
