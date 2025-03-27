@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Log;
 
 Route::get('/', function () {
     $shopItems = app(ShopItemController::class)->getTopThreeItems();
-    
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -170,14 +170,6 @@ Route::middleware([
             }
         })->name('api.execute-command');
 
-        Route::get('/check-connection', function () {
-            if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->checkServerConnection();
-            } else {
-                abort(403, 'Unauthorized');
-            }
-        })->name('api.check-connection');
-
         Route::post('/teleport-player', function () {
             if (Auth::user()->roles->pluck('name')->contains('admin')) {
                 return app(JsonApiReloadedController::class)->teleportPlayer();
@@ -201,14 +193,6 @@ Route::middleware([
                 abort(403, 'Unauthorized');
             }
         })->name('api.set-world-time');
-
-        Route::get('/server-version', function () {
-            if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->getServerVersion();
-            } else {
-                abort(403, 'Unauthorized');
-            }
-        })->name('api.server-version');
 
         Route::post('/ban-player', function () {
             if (Auth::user()->roles->pluck('name')->contains('admin')) {
@@ -234,23 +218,26 @@ Route::middleware([
                 abort(403, 'Unauthorized');
             }
         })->name('api.online-players');
+    });
+
+    Route::prefix('status')->group(function () {
+        Route::get('/check-connection', function () {
+            return app(JsonApiReloadedController::class)->checkServerConnection();
+        })->name('status.check-connection');
 
         Route::get('/player-count', function () {
-            if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->getPlayerCount();
-            } else {
-                abort(403, 'Unauthorized');
-            }
-        })->name('api.player-count');
+            return app(JsonApiReloadedController::class)->getPlayerCount();
+        })->name('status.player-count');
+
+        Route::get('/server-version', function () {
+            return app(JsonApiReloadedController::class)->getServerVersion();
+        })->name('status.server-version');
 
         Route::get('/get-java-memory-usage', function () {
-            if (Auth::user()->roles->pluck('name')->contains('admin')) {
-                return app(JsonApiReloadedController::class)->getJavaMemoryUsage();
-            } else {
-                abort(403, 'Unauthorized');
-            }
-        })->name('api.getJavaMemoryUsage');
+            return app(JsonApiReloadedController::class)->getJavaMemoryUsage();
+        })->name('status.getJavaMemoryUsage');
     });
+
 
     Route::post('/account/link/register', [AccountLinkController::class, 'sendConfirmationEmail'])->name('account.link.register');
     Route::get('/account/link/confirm/{token}', [AccountLinkController::class, 'confirm'])->name('account.link.confirm');
@@ -266,7 +253,7 @@ Route::middleware([
         $request->merge(['directoryPath' => $directoryPath]);
         return app(JsonApiReloadedController::class)->fsListDirectory($request);
     })->where('directoryPath', '.*')->name('list-directory');
-    
+
     Route::get('/purchases', function() {
         if (Auth::user()->roles->pluck('name')->contains('admin')) {
             $purchases = Purchase::paginate(10);

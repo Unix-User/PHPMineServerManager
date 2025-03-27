@@ -103,10 +103,10 @@ const serverStatus = reactive({
 const fetchServerStatus = async () => {
     try {
         const [checkConnectionResponse, playerCountResponse, serverVersionResponse, getJavaMemoryUsageResponse] = await Promise.all([
-            axios.get("/api/check-connection"),
-            axios.get("/api/player-count"),
-            axios.get("/api/server-version"),
-            axios.get("/api/get-java-memory-usage")
+            axios.get("/status/check-connection"),
+            axios.get("/status/player-count"),
+            axios.get("/status/server-version"),
+            axios.get("/status/get-java-memory-usage")
         ]);
 
         serverStatus.getJavaMemoryUsage = Math.round(getJavaMemoryUsageResponse.data.success[0].success) + " MB";

@@ -31,10 +31,10 @@ const fetchServerStatus = async () => {
     serverStatus.isLoading = true;
     try {
         const [connectionData, playerCountData, serverVersionData, memoryUsageData] = await Promise.all([
-            fetchData("/api/check-connection"),
-            fetchData("/api/player-count"),
-            fetchData("/api/server-version"),
-            fetchData("/api/get-java-memory-usage")
+            fetchData("/status/check-connection"),
+            fetchData("/status/player-count"),
+            fetchData("/status/server-version"),
+            fetchData("/status/get-java-memory-usage")
         ]);
 
         serverStatus.isServerOnline = connectionData?.is_connected || false;
