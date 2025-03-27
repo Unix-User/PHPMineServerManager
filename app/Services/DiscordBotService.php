@@ -64,8 +64,13 @@ class DiscordBotService
 
     public function getChannelMessages($channelId)
     {
-        $response = $this->client->get("channels/{$channelId}/messages");
-        return json_decode($response->getBody(), true);
+        try {
+            $response = $this->client->get("channels/{$channelId}/messages");
+            return json_decode($response->getBody(), true);
+        } catch (\Exception $e) {
+            Log::error('Erro ao obter mensagens do canal do Discord: ' . $e->getMessage());
+            return [];
+        }
     }
 
     public function processMessages($channelId)

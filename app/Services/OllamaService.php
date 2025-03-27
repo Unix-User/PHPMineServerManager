@@ -12,8 +12,8 @@ class OllamaService
 
     public function __construct()
     {
-        $this->baseUrl = config('services.ollama.base_url', 'https://ollama.udianix.com.br/ollama');
-        $this->apiKey = config('services.ollama.api_key');
+        $this->baseUrl = env('OLLAMA_BASE_URL');
+        $this->apiKey = env('OLLAMA_API_KEY');
     }
 
     public function generate($data)
