@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Services\JSONAPI;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class JsonApiReloadedController extends Controller
 {
-    protected $jsonApiService;
+    protected JSONAPI $jsonApiService;
 
     public function __construct(JSONAPI $jsonApiService)
     {
@@ -19,9 +20,9 @@ class JsonApiReloadedController extends Controller
      * Envia uma mensagem de broadcast com um nome específico
      *
      * @param Request $request Contendo a mensagem e o nome a ser usado
-     * @return \Illuminate\Http\JsonResponse Resposta da API indicando sucesso ou falha
+     * @return JsonResponse Resposta da API indicando sucesso ou falha
      */
-    public function broadcastWithName(Request $request)
+    public function broadcastWithName(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('broadcastWithName', [
             $request->input('message'),
@@ -33,42 +34,39 @@ class JsonApiReloadedController extends Controller
      * Envia uma mensagem privada para um jogador específico
      *
      * @param Request $request Contendo o nome do jogador e a mensagem
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function sendMessage(Request $request)
+    public function sendMessage(Request $request): JsonResponse
     {
         $response = $this->jsonApiResponse('sendMessage', [
             $request->input('playerName'),
             $request->input('message')
         ], true);
 
-        // Decodifica explicitamente como array
-        /** @var array $responseData */
+        /** @var array|null $responseData */
         $responseData = json_decode($response->getContent(), true);
 
-        // Verifica se a resposta é um array válido
         if (!is_array($responseData)) {
-            Log::error("Resposta da API inválida", ['response' => $response->getContent()]);
-            return response()->json(['success' => false, 'error' => 'Resposta da API inválida'], 500);
+            Log::error("Invalid API response format", ['response' => $response->getContent()]);
+            return response()->json(['success' => false, 'error' => 'Invalid API response format'], 500);
         }
 
-        // Acessa o primeiro item do array (estrutura observada nos logs)
         $firstItem = $responseData[0] ?? null;
 
         if (!$firstItem || !isset($firstItem['is_success']) || $firstItem['is_success'] !== true) {
-            Log::error("Erro ao enviar mensagem", [
+            Log::error("Failed to send message", [
                 'player' => $request->input('playerName'),
                 'api_response' => $responseData
             ]);
             return response()->json([
                 'success' => false,
-                'error' => 'Falha ao enviar mensagem: ' . ($firstItem['result'] ?? 'Erro desconhecido')
+                'error' => 'Failed to send message: ' . ($firstItem['result'] ?? 'Unknown error from API')
             ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Mensagem enviada com sucesso',
+            'message' => 'Message sent successfully',
             'data' => $responseData
         ]);
     }
@@ -77,9 +75,9 @@ class JsonApiReloadedController extends Controller
      * Envia uma mensagem para todos os jogadores no servidor
      *
      * @param Request $request Contendo a mensagem a ser enviada
-     * @return \Illuminate\Http\JsonResponse Resposta da API com o número de jogadores que receberam a mensagem
+     * @return JsonResponse Resposta da API com o número de jogadores que receberam a mensagem
      */
-    public function broadcast(Request $request)
+    public function broadcast(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('broadcast', [
             $request->input('message')
@@ -91,9 +89,9 @@ class JsonApiReloadedController extends Controller
      * Adiciona conteúdo ao final de um arquivo
      *
      * @param Request $request Contendo o caminho do arquivo e o conteúdo a ser adicionado
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsAppend(Request $request)
+    public function fsAppend(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.append', [
             $request->input('filePath'),
@@ -105,9 +103,9 @@ class JsonApiReloadedController extends Controller
      * Cria um novo arquivo
      *
      * @param Request $request Contendo o caminho do arquivo a ser criado
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsCreateFile(Request $request)
+    public function fsCreateFile(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.createFile', [
             $request->input('filePath')
@@ -118,9 +116,9 @@ class JsonApiReloadedController extends Controller
      * Cria uma nova pasta
      *
      * @param Request $request Contendo o caminho da pasta a ser criada
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsCreateFolder(Request $request)
+    public function fsCreateFolder(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.createFolder', [
             $request->input('folderPath')
@@ -131,9 +129,9 @@ class JsonApiReloadedController extends Controller
      * Exclui um arquivo ou pasta
      *
      * @param Request $request Contendo o caminho do arquivo/pasta a ser excluído
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsDelete(Request $request)
+    public function fsDelete(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.delete', [
             $request->input('path')
@@ -144,9 +142,9 @@ class JsonApiReloadedController extends Controller
      * Lista o conteúdo de um diretório
      *
      * @param Request $request Contendo o caminho do diretório
-     * @return \Illuminate\Http\JsonResponse Resposta da API com a lista de arquivos/pastas
+     * @return JsonResponse Resposta da API com a lista de arquivos/pastas
      */
-    public function fsListDirectory(Request $request)
+    public function fsListDirectory(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.listDirectory', [
             $request->input('directoryPath')
@@ -157,9 +155,9 @@ class JsonApiReloadedController extends Controller
      * Move ou renomeia um arquivo ou pasta
      *
      * @param Request $request Contendo o caminho antigo e o novo caminho
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsMove(Request $request)
+    public function fsMove(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.move', [
             $request->input('oldPath'),
@@ -171,9 +169,9 @@ class JsonApiReloadedController extends Controller
      * Lê o conteúdo de um arquivo de texto
      *
      * @param Request $request Contendo o caminho do arquivo
-     * @return \Illuminate\Http\JsonResponse Resposta da API com o conteúdo do arquivo
+     * @return JsonResponse Resposta da API com o conteúdo do arquivo
      */
-    public function fsRead(Request $request)
+    public function fsRead(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.read', [
             $request->input('filePath')
@@ -184,9 +182,9 @@ class JsonApiReloadedController extends Controller
      * Lê o conteúdo de um arquivo binário
      *
      * @param Request $request Contendo o caminho do arquivo
-     * @return \Illuminate\Http\JsonResponse Resposta da API com o conteúdo binário
+     * @return JsonResponse Resposta da API com o conteúdo binário
      */
-    public function fsReadBinary(Request $request)
+    public function fsReadBinary(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.readBinary', [
             $request->input('filePath')
@@ -197,9 +195,9 @@ class JsonApiReloadedController extends Controller
      * Escreve conteúdo em um arquivo de texto
      *
      * @param Request $request Contendo o caminho do arquivo e o conteúdo a ser escrito
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsWrite(Request $request)
+    public function fsWrite(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.write', [
             $request->input('filePath'),
@@ -211,9 +209,9 @@ class JsonApiReloadedController extends Controller
      * Escreve conteúdo binário em um arquivo
      *
      * @param Request $request Contendo o caminho do arquivo e o conteúdo em base64
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function fsWriteBinary(Request $request)
+    public function fsWriteBinary(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('fs.writeBinary', [
             $request->input('filePath'),
@@ -225,9 +223,9 @@ class JsonApiReloadedController extends Controller
      * Obtém as últimas mensagens do chat
      *
      * @param Request $request Contendo o limite de mensagens a serem retornadas
-     * @return \Illuminate\Http\JsonResponse Resposta da API com as mensagens
+     * @return JsonResponse Resposta da API com as mensagens
      */
-    public function getLatestChatsWithLimit(Request $request)
+    public function getLatestChatsWithLimit(Request $request): JsonResponse
     {
         $limit = $request->input('limit', 30);
         return $this->jsonApiResponse('getLatestChatsWithLimit', [$limit]);
@@ -237,9 +235,9 @@ class JsonApiReloadedController extends Controller
      * Executa um comando no console
      *
      * @param Request $request Contendo o comando a ser executado
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function runCommand(Request $request)
+    public function runCommand(Request $request): JsonResponse
     {
         $command = $request->input('command');
 
@@ -254,7 +252,6 @@ class JsonApiReloadedController extends Controller
             ], 400);
         }
 
-        // The JSONAPI expects exactly one argument for runConsoleCommand
         return $this->jsonApiResponse('runConsoleCommand', [$command]);
     }
 
@@ -263,7 +260,7 @@ class JsonApiReloadedController extends Controller
      *
      * @return array Resposta da API com informações de uso de memória
      */
-    public function getJavaMemoryUsage()
+    public function getJavaMemoryUsage(): array
     {
         return $this->handleApiResponse($this->jsonApiService->getJavaMemoryUsage());
     }
@@ -274,7 +271,7 @@ class JsonApiReloadedController extends Controller
      * @param mixed $apiResponse Resposta da API
      * @return array Resposta formatada
      */
-    private function handleApiResponse($apiResponse)
+    private function handleApiResponse($apiResponse): array
     {
         if (isset($apiResponse['error'])) {
             return [
@@ -300,9 +297,9 @@ class JsonApiReloadedController extends Controller
      * Teleporta um jogador para uma localização específica
      *
      * @param Request $request Contendo nome do jogador e coordenadas
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function teleportPlayer(Request $request)
+    public function teleportPlayer(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('teleportPlayerToLocation', [
             'playerName' => $request->input('playerName'),
@@ -316,9 +313,9 @@ class JsonApiReloadedController extends Controller
      * Dá um item para um jogador
      *
      * @param Request $request Contendo nome do jogador, nome do item e quantidade
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function givePlayerItem(Request $request)
+    public function givePlayerItem(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('takePlayerInventory', [
             'playerName' => $request->input('playerName'),
@@ -331,9 +328,9 @@ class JsonApiReloadedController extends Controller
      * Define o tempo de um mundo
      *
      * @param Request $request Contendo nome do mundo e tempo
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function setWorldTime(Request $request)
+    public function setWorldTime(Request $request): JsonResponse
     {
         return $this->jsonApiResponse('setWorldTime', [
             'worldName' => $request->input('worldName'),
@@ -344,9 +341,9 @@ class JsonApiReloadedController extends Controller
     /**
      * Obtém estatísticas do servidor
      *
-     * @return \Illuminate\Http\JsonResponse Resposta da API com estatísticas
+     * @return JsonResponse Resposta da API com estatísticas
      */
-    public function getServerStats()
+    public function getServerStats(): JsonResponse
     {
         return $this->jsonApiResponse('getServerStats');
     }
@@ -354,9 +351,9 @@ class JsonApiReloadedController extends Controller
     /**
      * Obtém a versão do servidor
      *
-     * @return \Illuminate\Http\JsonResponse Resposta da API com a versão
+     * @return JsonResponse Resposta da API com a versão
      */
-    public function getServerVersion()
+    public function getServerVersion(): JsonResponse
     {
         return $this->jsonApiResponse('getServerVersion');
     }
@@ -365,9 +362,9 @@ class JsonApiReloadedController extends Controller
      * Bane um jogador
      *
      * @param Request $request Contendo nome do jogador
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function banPlayer(Request $request)
+    public function banPlayer(Request $request): JsonResponse
     {
         $playerName = $request->input('playerName');
         return $this->jsonApiResponse('banPlayer', ['playerName' => $playerName]);
@@ -377,9 +374,9 @@ class JsonApiReloadedController extends Controller
      * Desbane um jogador
      *
      * @param Request $request Contendo nome do jogador
-     * @return \Illuminate\Http\JsonResponse Resposta da API
+     * @return JsonResponse Resposta da API
      */
-    public function unbanPlayer(Request $request)
+    public function unbanPlayer(Request $request): JsonResponse
     {
         $playerName = $request->input('playerName');
         return $this->jsonApiResponse('unbanPlayer', ['playerName' => $playerName]);
@@ -388,9 +385,9 @@ class JsonApiReloadedController extends Controller
     /**
      * Obtém detalhes dos jogadores online
      *
-     * @return \Illuminate\Http\JsonResponse Resposta da API com detalhes dos jogadores
+     * @return JsonResponse Resposta da API com detalhes dos jogadores
      */
-    public function getOnlinePlayersDetails()
+    public function getOnlinePlayersDetails(): JsonResponse
     {
         return $this->jsonApiResponse('getOnlinePlayersDetails');
     }
@@ -398,9 +395,9 @@ class JsonApiReloadedController extends Controller
     /**
      * Obtém a quantidade de jogadores online
      *
-     * @return \Illuminate\Http\JsonResponse Resposta da API com a contagem de jogadores
+     * @return JsonResponse Resposta da API com a contagem de jogadores
      */
-    public function getPlayerCount()
+    public function getPlayerCount(): JsonResponse
     {
         return $this->jsonApiResponse('getPlayerCount');
     }
@@ -409,9 +406,9 @@ class JsonApiReloadedController extends Controller
      * Obtém os nomes dos jogadores online em um mundo específico
      *
      * @param Request $request Contendo o nome do mundo
-     * @return \Illuminate\Http\JsonResponse Resposta da API com os nomes dos jogadores
+     * @return JsonResponse Resposta da API com os nomes dos jogadores
      */
-    public function getOnlinePlayerNamesInWorld(Request $request)
+    public function getOnlinePlayerNamesInWorld(Request $request): JsonResponse
     {
         $worldName = $request->input('worldName');
         return $this->jsonApiResponse('getOnlinePlayerNamesInWorld', ['worldName' => $worldName]);
@@ -423,18 +420,19 @@ class JsonApiReloadedController extends Controller
      * @param Request $request Contendo o nome do jogador
      * @return array Objeto de inventário representando o inventário do jogador
      */
-    public function getPlayerInventory(Request $request)
+    public function getPlayerInventory(Request $request): JsonResponse
     {
-        return $this->jsonApiResponse('getPlayerInventory', ['playerName' => $request]);
+        $playerName = $request->input('playerName');
+        return $this->jsonApiResponse('getPlayerInventory', ['playerName' => $playerName]);
     }
 
     /**
      * Obtém um slot específico do inventário de um jogador (online ou offline)
      *
      * @param Request $request Contendo o nome do jogador e número do slot
-     * @return \Illuminate\Http\JsonResponse Objeto ItemStack representando o item no slot especificado
+     * @return JsonResponse Objeto ItemStack representando o item no slot especificado
      */
-    public function getPlayerInventorySlot(Request $request)
+    public function getPlayerInventorySlot(Request $request): JsonResponse
     {
         $playerName = $request->input('playerName');
         $slot = $request->input('slot');
@@ -447,9 +445,9 @@ class JsonApiReloadedController extends Controller
     /**
      * Verifica a conexão com o servidor
      *
-     * @return array Resposta da API indicando se o servidor está conectado
+     * @return JsonResponse Resposta da API indicando se o servidor está conectado
      */
-    public function checkServerConnection()
+    public function checkServerConnection(): JsonResponse
     {
         $connectionStatus = $this->jsonApiService->checkConnection();
         return response()->json(['is_connected' => $connectionStatus], $connectionStatus ? 200 : 503);
@@ -461,9 +459,9 @@ class JsonApiReloadedController extends Controller
      * @param string $method Método da API a ser chamado
      * @param array $parameters Parâmetros para o método
      * @param bool $checkEmpty Se deve verificar parâmetros vazios
-     * @return \Illuminate\Http\JsonResponse // Corrigido para JsonResponse
+     * @return JsonResponse
      */
-    private function jsonApiResponse($method, $parameters = [], $checkEmpty = false)
+    private function jsonApiResponse(string $method, array $parameters = [], bool $checkEmpty = false): JsonResponse
     {
         if ($checkEmpty && in_array(null, $parameters, true)) {
             return response()->json(['error' => 'Missing required parameters'], 400);
