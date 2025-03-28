@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Services\{
     OllamaService,
     DiscordChatService,
-    DiscordMessageService
+    DiscordMessageService,
+    WarningMessageService // Adicionado WarningMessageService
 };
 
 class CheckDiscordChat extends Command
@@ -19,13 +20,15 @@ class CheckDiscordChat extends Command
     public function handle(
         OllamaService $ollamaService,
         DiscordChatService $discordChatService,
-        DiscordMessageService $DiscordMessageService // Mudança: Usando DiscordMessageService
+        DiscordMessageService $DiscordMessageService, // Mudança: Usando DiscordMessageService
+        WarningMessageService $warningMessageService // Adicionado WarningMessageService
     ): void {
         try {
             $this->processChatMessages(
                 $discordChatService,
                 $ollamaService, // Mudança: Usando OllamaService para análise
-                $DiscordMessageService // Mudança: Usando DiscordMessageService
+                $DiscordMessageService, // Mudança: Usando DiscordMessageService
+                $warningMessageService // Adicionado WarningMessageService
             );
         } catch (Exception $e) {
             $this->handleGlobalError($e);
@@ -35,13 +38,14 @@ class CheckDiscordChat extends Command
     private function processChatMessages(
         DiscordChatService $discordChatService,
         OllamaService $ollamaService, // Mudança: Usando OllamaService para análise
-        DiscordMessageService $DiscordMessageService // Mudança: Usando DiscordMessageService
+        DiscordMessageService $DiscordMessageService, // Mudança: Usando DiscordMessageService
+        WarningMessageService $warningMessageService // Adicionado WarningMessageService
     ): void {
         $messages = $discordChatService->fetchChatMessages();
         $this->displayChatMessagesIfRequested($messages);
 
         $chatAnalysisResult = $this->analyzeMessagesWithOllama($ollamaService, $messages); // Mudança: Analisando com Ollama
-        $this->processAnalysisResults($chatAnalysisResult, $DiscordMessageService); // Mudança: Processando resultados e enviando mensagem
+        $this->processAnalysisResults($chatAnalysisResult, $DiscordMessageService, $warningMessageService); // Mudança: Processando resultados e enviando mensagem
     }
 
     private function analyzeMessagesWithOllama(OllamaService $ollamaService, array $messages): array
@@ -60,7 +64,15 @@ class CheckDiscordChat extends Command
             ]);
 
             if (isset($ollamaResponse['choices'][0]['message']['content'])) {
-                return json_decode($ollamaResponse['choices'][0]['message']['content'], true) ?? ['infracoes' => []];
+                $infracoes = json_decode($ollamaResponse['choices'][0]['message']['content'], true) ?? ['infracoes' => []];
+                // Adiciona a plataforma 'discord' a cada infração
+                if (isset($infracoes['infracoes'])) {
+                    $infracoes['infracoes'] = array_map(function($infracao) {
+                        $infracao['platform'] = 'discord';
+                        return $infracao;
+                    }, $infracoes['infracoes']);
+                }
+                return $infracoes;
             } else {
                 Log::error('Resposta do Ollama sem conteúdo', ['response' => $ollamaResponse]);
                 return ['infracoes' => []];
@@ -131,39 +143,26 @@ class CheckDiscordChat extends Command
         $this->error("<fg=red>Erro:</> {$e->getMessage()}");
     }
 
-    private function processAnalysisResults(array $chatAnalysisResult, DiscordMessageService $DiscordMessageService): void // Mudança: Usando DiscordMessageService
+    private function processAnalysisResults(array $chatAnalysisResult, DiscordMessageService $DiscordMessageService, WarningMessageService $warningMessageService): void // Mudança: Usando WarningMessageService
     {
         empty($chatAnalysisResult['infracoes'])
-            ? $this->handleNoViolationsDetected($DiscordMessageService) // Mudança: Passando DiscordMessageService
-            : $this->handleViolations($chatAnalysisResult['infracoes'], $DiscordMessageService); // Mudança: Passando DiscordMessageService
+            ? $this->handleNoViolationsDetected($DiscordMessageService) // Mantém DiscordMessageService para no violations
+            : $this->handleViolations($chatAnalysisResult['infracoes'], $warningMessageService); // Mudança: Usando WarningMessageService para violations
     }
 
-    private function handleNoViolationsDetected(DiscordMessageService $DiscordMessageService): void // Mudança: Passando DiscordMessageService
+    private function handleNoViolationsDetected(DiscordMessageService $DiscordMessageService): void // Mantém DiscordMessageService para no violations
     {
         if ($this->option('print')) {
             $this->info("<fg=green>✅ Checagem concluída. Nenhuma mensagem inadequada detectada no Discord.</>");
         }
-        $DiscordMessageService->sendChatMessage("✅ Checagem de chat concluída. Nenhuma infração detectada."); // Mudança: Enviando mensagem para o Discord
+        $DiscordMessageService->sendChatMessage("✅ Checagem de chat concluída. Nenhuma infração detectada."); // Mantém DiscordMessageService para no violations
     }
 
-    private function handleViolations(array $violations, DiscordMessageService $DiscordMessageService): void // Mudança: Passando DiscordMessageService
+    private function handleViolations(array $violations, WarningMessageService $warningMessageService): void // Mudança: Usando WarningMessageService
     {
         $this->displayViolationsIfRequested($violations);
-        $warningMessage = $this->createWarningMessage($violations); // Mudança: Criando mensagem de aviso
-        $DiscordMessageService->sendChatMessage($warningMessage); // Mudança: Enviando mensagem de aviso para o Discord
-    }
-
-    private function createWarningMessage(array $violations): string
-    {
-        $warningMessage = "⚠️  Infrações detectadas no Discord:\n\n";
-        foreach ($violations as $violation) {
-            $warningMessage .= "**Jogador:** " . ($violation['jogador'] ?? 'Desconhecido') . "\n";
-            $warningMessage .= "**Mensagem:** " . ($violation['mensagem'] ?? 'Mensagem inválida') . "\n";
-            $warningMessage .= "**Problemas:** " . implode(', ', $violation['problemas'] ?? []) . "\n";
-            $warningMessage .= "**Categorias:** " . implode(', ', $violation['categorias'] ?? []) . "\n";
-            $warningMessage .= "**Gravidade:** " . ($violation['gravidade'] ?? 'N/A') . "\n\n";
-        }
-        return $warningMessage;
+        // Remove a criação de mensagem e usa WarningMessageService para enviar as warnings
+        $warningMessageService->sendPlayerWarnings($violations); // Usando WarningMessageService para enviar warnings
     }
 
 
