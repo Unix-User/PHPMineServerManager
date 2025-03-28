@@ -9,25 +9,25 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('discord:answer-messages')
-            ->everyMinute()
-            ->withoutOverlapping()
-            ->onOneServer();
+        // $schedule->command('discord:answer-messages')
+        //     ->everyMinute()
+        //     ->withoutOverlapping()
+        //     ->onOneServer();
 
         $schedule->command('vip:check-activation')
             ->everyFiveMinutes()
             ->withoutOverlapping()
             ->onOneServer();
 
-        $schedule->command('minecraft:check-chat')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->onOneServer();
+        // $schedule->command('minecraft:check-chat')
+        //     ->everyFiveMinutes()
+        //     ->withoutOverlapping()
+        //     ->onOneServer();
 
-        $schedule->command('discord:check-chat')
-            ->everyFiveMinutes() 
-            ->withoutOverlapping()
-            ->onOneServer();
+        // $schedule->command('discord:check-chat')
+        //     ->everyFiveMinutes() 
+        //     ->withoutOverlapping()
+        //     ->onOneServer();
     }
 
     protected function commands(): void

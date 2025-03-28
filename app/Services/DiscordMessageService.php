@@ -17,28 +17,32 @@ class DiscordMessageService
     private string $webhookUrl;
     private string $botToken;
     private string $channelId;
-    private DiscordBotService $discordBotService; // Adiciona dependência
+    private DiscordBotService $discordBotService;
 
-    public function __construct(?OllamaService $ollamaService = null, DiscordBotService $discordBotService) // Injeta DiscordBotService
+    public function __construct(?OllamaService $ollamaService = null, DiscordBotService $discordBotService)
     {
+        Log::info('Inicializando DiscordMessageService', [
+            'ollamaService_configured' => !is_null($ollamaService),
+            'webhookUrl_configured' => !empty(env('DISCORD_WEBHOOK_URL')),
+            'botToken_configured' => !empty(env('DISCORD_TOKEN')),
+            'channelId_configured' => !empty(env('DISCORD_CHANNEL_ID'))
+        ]);
+
         $this->ollamaService = $ollamaService;
         $this->webhookUrl = env('DISCORD_WEBHOOK_URL');
         $this->botToken = env('DISCORD_TOKEN');
         $this->channelId = env('DISCORD_CHANNEL_ID');
-        $this->discordBotService = $discordBotService; // Inicializa
+        $this->discordBotService = $discordBotService;
     }
 
-    /**
-     * Envia uma mensagem para um canal do Discord usando a API.
-     *
-     * @param string $message Conteúdo da mensagem a ser enviada.
-     * @param string|null $channelId ID do canal (opcional, usa o padrão se não fornecido)
-     * @return void
-     * @throws Exception Se a URL do webhook não estiver configurada ou se houver um erro ao enviar a mensagem.
-     */
     public function sendChatMessage(string $message, ?string $channelId = null): void
     {
         $targetChannel = $channelId ?? $this->channelId;
+
+        Log::info('Enviando mensagem para o Discord', [
+            'channelId' => $targetChannel,
+            'message_length' => strlen($message)
+        ]);
 
         $response = $this->discordBotService->discordApiRequest('POST', "/channels/{$targetChannel}/messages", ['content' => $message]);
 
@@ -49,17 +53,13 @@ class DiscordMessageService
             ]);
             throw new Exception("Falha ao enviar mensagem para o Discord.");
         }
+
+        Log::info('Mensagem enviada com sucesso para o Discord', [
+            'channelId' => $targetChannel,
+            'response_status' => $response['status'] ?? 'N/A'
+        ]);
     }
 
-    /**
-     * Gera uma mensagem utilizando o OllamaService e a envia para o Discord.
-     *
-     * @param string $prompt Prompt a ser enviado para o OllamaService.
-     * @param array $ollamaOptions Opções adicionais para a requisição ao Ollama.
-     * @param string|null $channelId ID do canal (opcional, usa o padrão se não fornecido)
-     * @return void
-     * @throws Exception Se o OllamaService não estiver configurado ou se houver um erro na geração/envio da mensagem.
-     */
     public function sendChatMessageWithOllama(string $prompt, array $ollamaOptions = [], ?string $channelId = null): void
     {
         if (!$this->ollamaService) {
@@ -68,6 +68,11 @@ class DiscordMessageService
         }
 
         try {
+            Log::info('Gerando mensagem com Ollama', [
+                'prompt_length' => strlen($prompt),
+                'options' => $ollamaOptions
+            ]);
+
             $response = $this->ollamaService->generate([
                 'model' => env('OLLAMA_MODEL', 'google_genai.gemini-2.0-flash-exp'),
                 'messages' => [[
@@ -78,44 +83,52 @@ class DiscordMessageService
             ]);
 
             $messageContent = trim($response['choices'][0]['message']['content'] ?? '');
+            
             if (!empty($messageContent)) {
+                Log::info('Mensagem gerada pelo Ollama', [
+                    'content_length' => strlen($messageContent)
+                ]);
                 $this->sendChatMessage($messageContent, $channelId);
             } else {
                 Log::warning('Mensagem gerada pelo Ollama está vazia.');
             }
         } catch (Exception $e) {
-            Log::error('Erro ao gerar e enviar mensagem com Ollama para o Discord', ['error' => $e->getMessage()]);
+            Log::error('Erro ao gerar e enviar mensagem com Ollama para o Discord', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw $e;
         }
     }
 
-    /**
-     * Obtém as últimas mensagens de um canal do Discord usando a API.
-     *
-     * @param string|null $channelId ID do canal (opcional, usa o padrão se não fornecido)
-     * @param int $limit Número máximo de mensagens a serem retornadas (padrão: 50)
-     * @return array
-     * @throws Exception Se houver erro na requisição
-     */
     public function getChannelMessages(?string $channelId = null, int $limit = 50): array
     {
         $targetChannel = $channelId ?? $this->channelId;
 
-        return $this->discordBotService->discordApiRequest('GET', "/channels/{$targetChannel}/messages", ['limit' => $limit]);
+        Log::info('Obtendo mensagens do canal do Discord', [
+            'channelId' => $targetChannel,
+            'limit' => $limit
+        ]);
+
+        $messages = $this->discordBotService->discordApiRequest('GET', "/channels/{$targetChannel}/messages", ['limit' => $limit]);
+
+        Log::info('Mensagens obtidas do canal do Discord', [
+            'channelId' => $targetChannel,
+            'message_count' => count($messages)
+        ]);
+
+        return $messages;
     }
 
-    /**
-     * Edita uma mensagem existente no Discord usando a API.
-     *
-     * @param string $messageId ID da mensagem a ser editada
-     * @param string $newContent Novo conteúdo da mensagem
-     * @param string|null $channelId ID do canal (opcional, usa o padrão se não fornecido)
-     * @return void
-     * @throws Exception Se houver erro na requisição
-     */
     public function editMessage(string $messageId, string $newContent, ?string $channelId = null): void
     {
         $targetChannel = $channelId ?? $this->channelId;
+
+        Log::info('Editando mensagem no Discord', [
+            'channelId' => $targetChannel,
+            'messageId' => $messageId,
+            'newContent_length' => strlen($newContent)
+        ]);
 
         $response = $this->discordBotService->discordApiRequest('PATCH', "/channels/{$targetChannel}/messages/{$messageId}", ['content' => $newContent]);
 
@@ -127,5 +140,11 @@ class DiscordMessageService
             ]);
             throw new Exception("Falha ao editar mensagem no Discord.");
         }
+
+        Log::info('Mensagem editada com sucesso no Discord', [
+            'channelId' => $targetChannel,
+            'messageId' => $messageId,
+            'response_status' => $response['status'] ?? 'N/A'
+        ]);
     }
 }
