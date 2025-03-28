@@ -9,7 +9,7 @@ use App\Services\{
     OllamaService,
     DiscordChatService,
     DiscordMessageService,
-    WarningMessageService // Adicionado WarningMessageService
+    WarningMessageService
 };
 
 class CheckDiscordChat extends Command
