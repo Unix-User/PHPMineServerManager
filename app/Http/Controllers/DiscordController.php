@@ -41,7 +41,7 @@ class DiscordController extends Controller
         $webhookUrl = env('DISCORD_WEBHOOK_URL');
         $user = auth()->user();
         $response = Http::withHeaders($this->headers)
-            ->verify(env('DISCORD_VERIFY_SSL', true)) // Alterado de false para true
+            ->verify(env('DISCORD_VERIFY_SSL', false))
             ->post($webhookUrl, [
             'content' => $content,
             'username' => $user->name,
@@ -71,8 +71,14 @@ class DiscordController extends Controller
                 'system' => "You are Mr. Robot, a friendly AI assistant."
             ]);
 
-            $this->sendBotMessage($ollama_response['response']);
-            Log::info('Resposta do bot enviada', ['response' => $ollama_response['response']]);
+            // Verifica se a resposta contém o conteúdo esperado
+            if (isset($ollama_response['choices'][0]['message']['content'])) {
+                $botResponse = $ollama_response['choices'][0]['message']['content'];
+                $this->sendBotMessage($botResponse);
+                Log::info('Resposta do bot enviada', ['response' => $botResponse]);
+            } else {
+                throw new \Exception("Resposta do Ollama não contém o conteúdo esperado");
+            }
         } catch (\Exception $e) {
             Log::error('Erro ao gerar resposta do bot', ['error' => $e->getMessage(), 'content' => $content]);
             $this->notifyAdminOfError($e);
@@ -84,7 +90,7 @@ class DiscordController extends Controller
         $channel = $channelId ?? $this->channelId;
         return Http::retry(3, 100)
             ->withHeaders($this->headers)
-            ->verify(env('DISCORD_VERIFY_SSL', true)) // Alterado de false para true
+            ->verify(env('DISCORD_VERIFY_SSL', true))
             ->post("https://discord.com/api/v10/channels/{$channel}/messages", [
             'content' => $content,
         ]);
@@ -257,7 +263,7 @@ class DiscordController extends Controller
 
         try {
             $response = Http::withHeaders($this->headers)
-                ->withOptions(['verify' => env('DISCORD_VERIFY_SSL', true)]) // Alterado para withOptions para compatibilidade com versões mais antigas do Laravel
+                ->withOptions(['verify' => env('DISCORD_VERIFY_SSL', false)]) // Alterado para withOptions para compatibilidade com versões mais antigas do Laravel
                 ->$method($url, $data);
             $response->throw();
 
