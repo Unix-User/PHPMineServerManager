@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class LoginController extends Controller
 {
@@ -29,10 +30,17 @@ class LoginController extends Controller
             return redirect('/login')->with('error', 'Provedor não suportado');
         }
 
-        $user = Socialite::driver($provider)->user();
-        $this->handleUser($user);
-
-        return redirect('/home');
+        try {
+            $user = Socialite::driver($provider)->user();
+            $this->handleUser($user);
+            return redirect('/home');
+        } catch (InvalidStateException $e) {
+            // Trata o erro de estado inválido
+            return redirect('/login')->with('error', 'Sessão expirada. Por favor, tente fazer login novamente.');
+        } catch (\Exception $e) {
+            // Trata outros erros genéricos
+            return redirect('/login')->with('error', 'Ocorreu um erro ao tentar fazer login. Por favor, tente novamente.');
+        }
     }
 
     private function handleUser($user)
