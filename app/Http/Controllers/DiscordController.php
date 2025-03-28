@@ -257,7 +257,7 @@ class DiscordController extends Controller
 
         try {
             $response = Http::withHeaders($this->headers)
-                ->verify(env('DISCORD_VERIFY_SSL', true)) // Alterado de false para true
+                ->withOptions(['verify' => env('DISCORD_VERIFY_SSL', true)]) // Alterado para withOptions para compatibilidade com versões mais antigas do Laravel
                 ->$method($url, $data);
             $response->throw();
 
