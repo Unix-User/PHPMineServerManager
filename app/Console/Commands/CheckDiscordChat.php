@@ -155,13 +155,13 @@ class CheckDiscordChat extends Command
         if ($this->option('print')) {
             $this->info("<fg=green>✅ Checagem concluída. Nenhuma mensagem inadequada detectada no Discord.</>");
         }
-        $DiscordMessageService->sendChatMessage("✅ Checagem de chat concluída. Nenhuma infração detectada."); // Mantém DiscordMessageService para no violations
+        // $DiscordMessageService->sendChatMessage("✅ Checagem de chat concluída. Nenhuma infração detectada."); // Mantém DiscordMessageService para no violations
+        Log::info('Checagem de chat do Discord concluída. Nenhuma infração detectada.');
     }
 
     private function handleViolations(array $violations, WarningMessageService $warningMessageService): void // Mudança: Usando WarningMessageService
     {
         $this->displayViolationsIfRequested($violations);
-        // Remove a criação de mensagem e usa WarningMessageService para enviar as warnings
         $warningMessageService->sendPlayerWarnings($violations); // Usando WarningMessageService para enviar warnings
     }
 

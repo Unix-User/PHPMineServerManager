@@ -21,10 +21,12 @@ class DiscordController extends Controller
     private $headers;
     private $mrRobotId;
     protected $discordService;
+    protected $ollamaService;
 
-    public function __construct(DiscordBotService $discordService)
+    public function __construct(DiscordBotService $discordService, OllamaService $ollamaService)
     {
         $this->discordService = $discordService;
+        $this->ollamaService = $ollamaService;
         $this->discordToken = env('DISCORD_TOKEN');
         $this->channelId = env('DISCORD_CHANNEL_ID');
         $this->updateChannelId = env('DISCORD_UPDATE_CHANNEL_ID');
@@ -36,7 +38,7 @@ class DiscordController extends Controller
         $this->mrRobotId = env('MR_ROBOT_ID', '1140237518978166896');
     }
 
-    public function sendMessage(Request $request, $content, OllamaService $ollamaService)
+    public function sendMessage(Request $request, $content)
     {
         $webhookUrl = env('DISCORD_WEBHOOK_URL');
         $user = auth()->user();
@@ -48,17 +50,17 @@ class DiscordController extends Controller
         ]);
 
         if ($response->successful()) {
-            $this->handleBotResponse($content, $ollamaService);
+            $this->handleBotResponse($content);
         }
 
         return $response;
     }
 
-    private function handleBotResponse($content, OllamaService $ollamaService)
+    private function handleBotResponse($content)
     {
         try {
             $prompt = "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$content}";
-            $ollama_response = $ollamaService->generate([
+            $ollama_response = $this->ollamaService->generate([
                 'model' => env('OLLAMA_MODEL'),
                 'messages' => [
                     [
@@ -79,21 +81,17 @@ class DiscordController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Erro ao gerar resposta do bot', ['error' => $e->getMessage(), 'content' => $content]);
-            $this->notifyAdminOfError($e);
+            $this->notifyAdminOfError($e, ['content' => $content]);
         }
     }
 
     private function sendBotMessage($content, $channelId = null)
     {
         $channel = $channelId ?? $this->channelId;
-        return Http::retry(3, 100)
-            ->withHeaders($this->headers)
-            ->post("https://discord.com/api/v10/channels/{$channel}/messages", [
-            'content' => $content,
-        ]);
+        return $this->discordService->discordApiRequest('POST', "/channels/{$channel}/messages", ['content' => $content]);
     }
 
-    public function getChannelMessages(OllamaService $ollamaService)
+    public function getChannelMessages()
     {
         if (RateLimiter::tooManyAttempts('check_discord_messages', 60)) {
             Log::warning('Rate limit exceeded for Discord API calls');
@@ -102,11 +100,11 @@ class DiscordController extends Controller
 
         RateLimiter::hit('check_discord_messages');
 
-        $this->processChannelMessages($this->channelId, $ollamaService);
-        $this->processDirectMessages($ollamaService);
+        $this->processChannelMessages($this->channelId);
+        $this->processDirectMessages();
     }
 
-    private function processDirectMessages(OllamaService $ollamaService)
+    private function processDirectMessages()
     {
         if (RateLimiter::tooManyAttempts('check_discord_dm', 60)) {
             Log::warning('Rate limit exceeded for Discord API calls (DMs)');
@@ -117,14 +115,19 @@ class DiscordController extends Controller
 
         $dmChannel = $this->discordService->createDirectMessageChannel($this->mrRobotId);
 
-        if (isset($dmChannel['type']) && $dmChannel['type'] === 1) {
-            $this->processMessages($dmChannel['id'], $ollamaService, 'processed_discord_dm_messages');
+        if ($dmChannel && isset($dmChannel['type']) && $dmChannel['type'] === 1) {
+            $this->processMessages($dmChannel['id'], 'processed_discord_dm_messages');
+        } else {
+            Log::error('Falha ao criar canal de mensagem direta ou resposta inválida do Discord', [
+                'mrRobotId' => $this->mrRobotId,
+                'response' => $dmChannel
+            ]);
         }
     }
 
-    private function processMessages($channelId, OllamaService $ollamaService, $cacheKey)
+    private function processMessages($channelId, $cacheKey)
     {
-        $response = $this->sendRequest('GET', "/channels/{$channelId}/messages");
+        $response = $this->discordService->discordApiRequest('GET', "/channels/{$channelId}/messages");
 
         if (is_array($response) && isset($response['message'])) {
             Log::error('Erro ao obter mensagens do canal', [
@@ -143,14 +146,13 @@ class DiscordController extends Controller
             return;
         }
 
-
         $processedMessages = Cache::get($cacheKey . '_' . $channelId, []);
         $newProcessedMessages = $processedMessages;
 
         foreach ($response as $message) {
             if (!in_array($message['id'], $processedMessages) && $message['author']['id'] !== $this->mrRobotId) {
                 if (strpos($message['content'], '<@' . $this->mrRobotId . '>') !== false) {
-                    $this->handleBotInteraction($message, $ollamaService);
+                    $this->handleBotInteraction($message);
                 }
                 $newProcessedMessages[] = $message['id'];
             }
@@ -162,84 +164,53 @@ class DiscordController extends Controller
         }
     }
 
-    private function processChannelMessages($channelId, OllamaService $ollamaService)
+    private function processChannelMessages($channelId)
     {
-        $this->processMessages($channelId, $ollamaService, 'processed_discord_messages');
+        $this->processMessages($channelId, 'processed_discord_messages');
     }
 
-
-    private function handleBotInteraction($message, OllamaService $ollamaService)
+    private function handleBotInteraction($message)
     {
-        Log::info('Interação com o bot', [
-            'message_id' => $message['id'],
-            'author' => $message['author']['username'],
-            'content' => $message['content']
-        ]);
-
-        try {
-            $prompt = "Você é Mr. Robot, um assistente de IA amigável. Responda à seguinte mensagem: {$message['content']}";
-            $response = $ollamaService->generate([
-                'model' => env('OLLAMA_MODEL'),
-                'prompt' => $prompt,
-                'stream' => false,
-                'system' => "You are Mr. Robot, a friendly AI assistant."
-            ]);
-
-            if (isset($response['response'])) {
-                $this->sendBotMessage($response['response'], $message['channel_id']);
-                Log::info('Resposta enviada', [
-                    'message_id' => $message['id'],
-                    'response' => $response['response']
-                ]);
-            } else {
-                throw new \Exception("Resposta do Ollama não contém a chave 'response'");
-            }
-        } catch (\Exception $e) {
-            Log::error('Erro ao gerar resposta', [
-                'message_id' => $message['id'],
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'message_content' => $message['content']
-            ]);
-            $this->sendBotMessage('Desculpe, ocorreu um erro ao processar sua solicitação.', $message['channel_id']);
-            $this->notifyAdminOfError($e);
-        }
+        $this->discordService->handleBotInteraction($message);
     }
-
 
     public function getServerUpdates()
     {
-        return $this->sendRequest('GET', "/channels/{$this->updateChannelId}/messages");
+        return $this->discordService->discordApiRequest('GET', "/channels/{$this->updateChannelId}/messages");
     }
 
     public function createRole(Request $request)
     {
-        return $this->sendRequest('POST', "/guilds/{$this->serverId}/roles", ['name' => $request->input('name')]);
+        return $this->discordService->discordApiRequest('POST', "/guilds/{$this->serverId}/roles", ['name' => $request->input('name')]);
     }
 
     public function getRoles()
     {
-        return $this->sendRequest('GET', "/guilds/{$this->serverId}/roles");
+        $cacheKey = 'discord_server_roles_' . $this->serverId;
+        $roles = Cache::remember($cacheKey, now()->addMinutes(10), function () { // Cache por 10 minutos
+            return $this->discordService->discordApiRequest('GET', "/guilds/{$this->serverId}/roles");
+        });
+        return $roles;
     }
 
     public function updateRole(Request $request, $roleId)
     {
-        return $this->sendRequest('PATCH', "/guilds/{$this->serverId}/roles/{$roleId}", ['name' => $request->input('name')]);
+        return $this->discordService->discordApiRequest('PATCH', "/guilds/{$this->serverId}/roles/{$roleId}", ['name' => $request->input('name')]);
     }
 
     public function deleteRole($roleId)
     {
-        return $this->sendRequest('DELETE', "/guilds/{$this->serverId}/roles/{$roleId}");
+        return $this->discordService->discordApiRequest('DELETE', "/guilds/{$this->serverId}/roles/{$roleId}");
     }
 
     public function assignRole($userId, $roleId)
     {
-        return $this->sendRequest('PUT', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
+        return $this->discordService->discordApiRequest('PUT', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
     }
 
     public function removeRole($userId, $roleId)
     {
-        return $this->sendRequest('DELETE', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
+        return $this->discordService->discordApiRequest('DELETE', "/guilds/{$this->serverId}/members/{$userId}/roles/{$roleId}");
     }
 
     public function redirectToDiscord()
@@ -253,40 +224,14 @@ class DiscordController extends Controller
         // $user->token
     }
 
-    private function sendRequest($method, $endpoint, $data = [])
+
+    private function notifyAdminOfError(\Exception $e, array $context = [])
     {
-        $baseUrl = 'https://discord.com/api/v10';
-        $url = $baseUrl . $endpoint;
-
-        try {
-            $response = Http::withHeaders($this->headers)
-                ->withOptions(['verify' => true])
-                ->$method($url, $data);
-            $response->throw();
-
-            return $response->json();
-        } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::error('Discord API request failed', [
-                'url' => $url,
-                'status' => $e->response->status(),
-                'body' => $e->response->body(),
-                'discord_error' => $e->response->json()
-            ]);
-            return $e->response->json() ?? ['message' => 'Erro ao processar a solicitação', 'code' => $e->response->status()];
-        } catch (\Exception $e) {
-            Log::error('Exception in Discord API request', [
-                'url' => $url,
-                'error' => $e->getMessage()
-            ]);
-            return ['message' => 'Erro ao processar a solicitação', 'code' => 500];
-        }
-    }
-
-    private function notifyAdminOfError(\Exception $e)
-    {
+        $context['error'] = $e->getMessage();
+        $context['trace'] = $e->getTraceAsString();
         // TODO: Implementar a lógica para notificar os administradores sobre erros críticos
         // Pode ser via e-mail, Slack, ou outro método de sua escolha
-        Log::critical('Erro crítico detectado, administrador precisa ser notificado', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        Log::critical('Erro crítico detectado, administrador precisa ser notificado', $context);
     }
 
     public function handleWebhook(Request $request)
