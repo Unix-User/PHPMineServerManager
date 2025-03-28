@@ -41,7 +41,6 @@ class DiscordController extends Controller
         $webhookUrl = env('DISCORD_WEBHOOK_URL');
         $user = auth()->user();
         $response = Http::withHeaders($this->headers)
-            ->verify(env('DISCORD_VERIFY_SSL', false))
             ->post($webhookUrl, [
             'content' => $content,
             'username' => $user->name,
@@ -71,7 +70,6 @@ class DiscordController extends Controller
                 'system' => "You are Mr. Robot, a friendly AI assistant."
             ]);
 
-            // Verifica se a resposta contém o conteúdo esperado
             if (isset($ollama_response['choices'][0]['message']['content'])) {
                 $botResponse = $ollama_response['choices'][0]['message']['content'];
                 $this->sendBotMessage($botResponse);
@@ -90,7 +88,6 @@ class DiscordController extends Controller
         $channel = $channelId ?? $this->channelId;
         return Http::retry(3, 100)
             ->withHeaders($this->headers)
-            ->verify(env('DISCORD_VERIFY_SSL', true))
             ->post("https://discord.com/api/v10/channels/{$channel}/messages", [
             'content' => $content,
         ]);
@@ -263,7 +260,7 @@ class DiscordController extends Controller
 
         try {
             $response = Http::withHeaders($this->headers)
-                ->withOptions(['verify' => env('DISCORD_VERIFY_SSL', false)]) // Alterado para withOptions para compatibilidade com versões mais antigas do Laravel
+                ->withOptions(['verify' => true])
                 ->$method($url, $data);
             $response->throw();
 
@@ -275,7 +272,6 @@ class DiscordController extends Controller
                 'body' => $e->response->body(),
                 'discord_error' => $e->response->json()
             ]);
-            // Retorna o erro específico do Discord se disponível
             return $e->response->json() ?? ['message' => 'Erro ao processar a solicitação', 'code' => $e->response->status()];
         } catch (\Exception $e) {
             Log::error('Exception in Discord API request', [
@@ -312,13 +308,13 @@ class DiscordController extends Controller
         }
 
         switch ($payload['type']) {
-            case 1: // PING
-                return response()->json(['type' => 1]); // PONG
+            case 1:
+                return response()->json(['type' => 1]);
 
-            case 2: // APPLICATION_COMMAND
+            case 2:
                 return $this->handleApplicationCommand($payload);
 
-            case 3: // MESSAGE_COMPONENT
+            case 3:
                 return $this->handleMessageComponent($payload);
 
             default:
