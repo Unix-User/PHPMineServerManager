@@ -1,5 +1,7 @@
 name: Notify twitter
 on: [push]
+permissions:
+  contents: read
 jobs:
   setup:
     runs-on: ubuntu-latest
